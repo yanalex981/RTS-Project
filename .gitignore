@@ -4,4 +4,4 @@
 *.jar
 *.war
 *.ear
-*.blend\d
+*.blend?
