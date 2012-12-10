@@ -1,0 +1,47 @@
+public class Pathfinder {
+	Node[][] nodes;
+
+	public Pathfinder(Map m) {
+		nodes = m.getNodes();
+	}
+
+	public ArrayList<Node> findPath(Unit u, int endX, int endY) {
+		boolean[][] hasChecked = new boolean[nodes.length][nodes[0].length];
+		
+		LinkedList<Node> open = new LinkedList<Node>(0);
+		open.addFirst(nodes[u.getY()][u.getX()]);
+
+		while(open.size() > 0) {
+			Node temp = open.removeFirst();
+
+			if(temp.getX() == endX && temp.getY() == endY) {
+				return reconstructPath(temp);
+			}
+
+			for(Neighbour neighbour : temp.getNeighbours) {
+				if(hasChecked[neighbour.getNode().getY()][neighbour.getNode().getX()])
+					continue;
+
+				addSorted(open, neighbour.getNode());
+				hasChecked[neighbour.getNode().getY()][neighbour.getNode().getX()] = true;
+			}
+		}
+		
+		return new ArrayList<Node>(0);
+	}
+
+	private ArrayList<Node> reconstructPath(Node endNode) {
+		
+	}
+
+	private void addSorted(LinkedList<Node> array, Node toAdd) {
+		for(int i = 0; i < array.size(); i++) {
+			if(array.get(i).getF() >= toAdd.getF()) {
+				array.add(i, toAdd);
+				return;
+			}
+		}
+
+		array.add(toAdd);
+	}
+}
