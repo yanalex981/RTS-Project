@@ -1,20 +1,12 @@
 public class Node {
 	private int x, y;	
-	private int g, h;
-	private int unitRadius;
-	private boolean isEmpty;
-	private Node parent;
+	private int distanceFromWall;
 	private Neighbour[] neighbours;
 
-	public void Node(int x, int y, int unitRadius) {
+	public void Node(int x, int y) {
 		this.x = x;
 		this.y = y;
-		this.unitRadius = unitRadius;
-		isEmpty = true;
-	}
-
-	public void setParent(Node parent) {
-		this.parent = parent;
+		distanceFromWall = -1;
 	}
 
 	public int getX() {
@@ -25,11 +17,11 @@ public class Node {
 		return y;
 	}
 
-	public int getUnitRadius() {
-		return unitRadius;
+	public int getDistanceFromWall() {
+		return distanceFromWall;
 	}
 
-	public Node getParent() {
-		return parent;
+	public void setDistanceFromWall(int distanceFromWall) {
+		this.distanceFromWall = distanceFromWall;
 	}
 }
