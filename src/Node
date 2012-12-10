@@ -1,0 +1,35 @@
+public class Node {
+	private int x, y;	
+	private int g, h;
+	private int unitRadius;
+	private boolean isEmpty;
+	private Node parent;
+	private Neighbour[] neighbours;
+
+	public void Node(int x, int y, int unitRadius) {
+		this.x = x;
+		this.y = y;
+		this.unitRadius = unitRadius;
+		isEmpty = true;
+	}
+
+	public void setParent(Node parent) {
+		this.parent = parent;
+	}
+
+	public int getX() {
+		return x;
+	}
+
+	public int getY() {
+		return y;
+	}
+
+	public int getUnitRadius() {
+		return unitRadius;
+	}
+
+	public Node getParent() {
+		return parent;
+	}
+}
