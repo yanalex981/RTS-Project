@@ -5,21 +5,24 @@ public class Pathfinder {
 		nodes = m.getNodes();
 	}
 
-	public ArrayList<Node> findPath(Unit u, int endX, int endY) {
+	public ArrayList<Node> findPath(Node startNode, Node endNode, int unitRadius) {
 		boolean[][] hasChecked = new boolean[nodes.length][nodes[0].length];
 		
 		LinkedList<Node> open = new LinkedList<Node>(0);
-		open.addFirst(nodes[u.getY()][u.getX()]);
+		open.addFirst(startNode);
 
 		while(open.size() > 0) {
 			Node temp = open.removeFirst();
 
-			if(temp.getX() == endX && temp.getY() == endY) {
+			if(temp == endNode) {
 				return reconstructPath(temp);
 			}
 
 			for(Neighbour neighbour : temp.getNeighbours) {
 				if(hasChecked[neighbour.getNode().getY()][neighbour.getNode().getX()])
+					continue;
+
+				if(neighbour.getNode().getMaxUnitRadius() < unitRadius)
 					continue;
 
 				addSorted(open, neighbour.getNode());
@@ -31,7 +34,12 @@ public class Pathfinder {
 	}
 
 	private ArrayList<Node> reconstructPath(Node endNode) {
-		
+		ArrayList<Node> path = new ArrayList<Node>(0);
+
+		while(endNode != null) {
+			path.add(0, endNode);
+			endNode = endNode.getParent();
+		}
 	}
 
 	private void addSorted(LinkedList<Node> array, Node toAdd) {
