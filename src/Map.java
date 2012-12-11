@@ -52,4 +52,33 @@ public class Map {
 	public Node[][] getNodes() {
 		return nodes;
 	}
+	
+	/**
+	 * Sets a node on this Map as unwalkable
+	 * 
+	 * @param x The x-coordinate to block
+	 * @param y The y-coordinate to block
+	 */
+	public void setBlocked(int x, int y) {
+		if(nodes[y][x].getMaxUnitRadius == 0)
+			return;
+		
+		setUnitRadius(nodes[y][x], 0);
+	}
+	
+	/**
+	 * Sets this Node to the radius specified, and updates the maxUnitRadius of all the Nodes neighbours
+	 * 
+	 * @param n The node to set the radius of
+	 * @param radius The maxUnitRadius to set the Node to
+	 */
+	private void setUnitRadius(Node n, int radius) {
+		if(n.getMaxUnitRadius() < radius)
+			return;
+			
+		n.setMaxUnitRadius(radius);
+		
+		for(Neighbour neighbour : n.getNeighbours())
+			setUnitRadius(neighbour.getNode(), radius + neighbour.getCost());
+	}
 }
