@@ -41,7 +41,7 @@ public class Node {
 	public Node(int x, int y) {
 		this.x = x;
 		this.y = y;
-		maxUnitRadius = 100;
+		maxUnitRadius = Map.MAX_RADIUS_COST;
 	}
 
 	/**
