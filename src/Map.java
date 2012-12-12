@@ -6,7 +6,7 @@
  * @since December 10th, 2012
  */
 
-public class Map {
+public class Map {	
 	/**
 	 * The distance, in game units, to get from a node to a neighbouring
 	 * adjacent Node
@@ -56,6 +56,10 @@ public class Map {
 	 */
 	public Node[][] getNodes() {
 		return nodes;
+	}
+	
+	public Node getNode(int x, int y) {
+		return nodes[y][x];
 	}
 
 	/**
@@ -126,5 +130,13 @@ public class Map {
 
 		for (Neighbour neighbour : n.getNeighbours())
 			setUnitRadius(neighbour.getNode(), radius + neighbour.getCost());
+	}
+	
+	public int getHeight() {
+		return nodes.length;
+	}
+	
+	public int getWidth() {
+		return nodes[0].length;
 	}
 }
