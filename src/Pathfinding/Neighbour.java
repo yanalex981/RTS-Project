@@ -50,8 +50,11 @@ public class Neighbour {
 
 	/**
 	 * Sets the heuristic of the neighbour Node
-	 * @param endNode The detination Node in the path
-	 * @param parent The parent to set the neighbour Node to
+	 * 
+	 * @param endNode
+	 *            The detination Node in the path
+	 * @param parent
+	 *            The parent to set the neighbour Node to
 	 */
 	public void setHeuristic(Node endNode, Node parent) {
 		neighbour.setHeuristic(endNode.getX(), endNode.getY(), parent, cost);

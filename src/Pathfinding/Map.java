@@ -19,6 +19,8 @@ public class Map {
 	 */
 	public static final int DIAGONAL_COST = 14;
 
+	public static final int MAX_RADIUS_COST = 50;
+
 	/** The nodes in this map */
 	private Node[][] nodes;
 
@@ -32,14 +34,14 @@ public class Map {
 	 */
 	public Map(int width, int height) {
 		nodes = new Node[height][width];
-		
-		for(int y = 0; y < height; y++) {
-			for(int x = 0; x < width; x++)
+
+		for (int y = 0; y < height; y++) {
+			for (int x = 0; x < width; x++)
 				nodes[y][x] = new Node(x, y);
 		}
-		
-		for(int y = 0; y < height; y++) {
-			for(int x = 0; x < width; x++)
+
+		for (int y = 0; y < height; y++) {
+			for (int x = 0; x < width; x++)
 				nodes[y][x].setNeighbours(nodes);
 		}
 	}
@@ -52,33 +54,74 @@ public class Map {
 	public Node[][] getNodes() {
 		return nodes;
 	}
-	
+
 	/**
 	 * Sets a node on this Map as unwalkable
 	 * 
-	 * @param x The x-coordinate to block
-	 * @param y The y-coordinate to block
+	 * @param x
+	 *            The x-coordinate to block
+	 * @param y
+	 *            The y-coordinate to block
 	 */
 	public void setBlocked(int x, int y) {
-		if(nodes[y][x].getMaxUnitRadius == 0)
+		if (nodes[y][x].getMaxUnitRadius() == 0)
 			return;
-		
+
 		setUnitRadius(nodes[y][x], 0);
 	}
-	
+
 	/**
-	 * Sets this Node to the radius specified, and updates the maxUnitRadius of all the Nodes neighbours
+	 * Sets a node on this Map as walkable
 	 * 
-	 * @param n The node to set the radius of
-	 * @param radius The maxUnitRadius to set the Node to
+	 * @param x
+	 *            The x-coordinate to block
+	 * @param y
+	 *            The y-coordinate to block
+	 */
+	public void setUnblocked(int x, int y) {
+		if (nodes[y][x].getMaxUnitRadius() != 0)
+			return;
+
+		setUnblockedUnitRadius(nodes[y][x]);
+	}
+
+	/**
+	 * Reverses the maxUnitRadius when unblocking a Node
+	 * 
+	 * @param n
+	 *            The Node to reset the maxUnitRadius of
+	 */
+	private void setUnblockedUnitRadius(Node n) {
+		int previousUnitRadius = n.getMaxUnitRadius();
+		n.setMaxUnitRadius(MAX_RADIUS_COST);
+
+		for (Neighbour neighbour : n.getNeighbours()) {
+			if (neighbour.getNode().getMaxUnitRadius() == previousUnitRadius
+					+ neighbour.getCost())
+				setUnblockedUnitRadius(neighbour.getNode());
+			else if (neighbour.getNode().getMaxUnitRadius() < previousUnitRadius
+					+ neighbour.getCost())
+				setUnitRadius(n, neighbour.getNode().getMaxUnitRadius()
+						+ neighbour.getCost());
+		}
+	}
+
+	/**
+	 * Sets this Node to the radius specified, and updates the maxUnitRadius of
+	 * all the Nodes neighbours
+	 * 
+	 * @param n
+	 *            The node to set the radius of
+	 * @param radius
+	 *            The maxUnitRadius to set the Node to
 	 */
 	private void setUnitRadius(Node n, int radius) {
-		if(n.getMaxUnitRadius() < radius)
+		if (n.getMaxUnitRadius() < radius)
 			return;
-			
+
 		n.setMaxUnitRadius(radius);
-		
-		for(Neighbour neighbour : n.getNeighbours())
+
+		for (Neighbour neighbour : n.getNeighbours())
 			setUnitRadius(neighbour.getNode(), radius + neighbour.getCost());
 	}
 }

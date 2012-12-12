@@ -64,8 +64,8 @@ public class Node {
 	}
 
 	/**
-	 * Returns the squared estimated distance from the end Node to this Node in the
-	 * current pathfinding cycle
+	 * Returns the squared estimated distance from the end Node to this Node in
+	 * the current pathfinding cycle
 	 * 
 	 * @return The distance from the end Node to this Node
 	 */
