@@ -19,6 +19,9 @@ public class Map {
 	 */
 	public static final int DIAGONAL_COST = 14;
 
+	/**
+	 * The maximum max unit radius that a node can have
+	 */
 	public static final int MAX_RADIUS_COST = 50;
 
 	/** The nodes in this map */
