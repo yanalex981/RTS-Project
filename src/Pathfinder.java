@@ -92,7 +92,9 @@ public class Pathfinder {
 			Node temp = open.removeLast();
 
 			if (temp == endNode) {
-				return reconstructPath(temp);
+				ArrayList<Node> path = reconstructPath(temp);
+				smoothPath(path, unitRadius)
+				return path;
 			}
 
 			if (temp.getH() < closestNode.getH())
@@ -133,5 +135,57 @@ public class Pathfinder {
 		}
 
 		return path;
+	}
+	
+	/**
+	 * Smooths a precalculated path based on unit radius
+	 * 
+	 * @param path The precalculated path of Nodes
+	 * @param unitRadius The radius of the unit on the path
+	 */
+	private void smoothPath(ArrayList<Node> path, int unitRadius) {
+		if(path.size() <= 2)
+			return;
+		
+		for(int i = 2; i < path.size(); path++)
+			if(raytrace(path.get(i - 2), path.get(i), unitRadius))
+				path.remove(i - 1);
+	}
+	
+	/**
+	 * Raytraces between 2 Nodes on the map to check for visibility
+	 * 
+	 * @param n1 The Node to raytrace from
+	 * @param n2 The Node to raytrace to
+	 * @param unitRadius The radius of the unit to check for visibility
+	 * @return Whether or not Node 2 is visible from Node 1
+	 */
+	private boolean raytrace(Node n1, Node n2, int unitRadius) {
+		int dx = Math.abs(n2.getX() - n1.getX());
+		int dy = Math.abs(n2.getY() - n1.getY());
+		int x = n1.getX();
+		int y = n1.getY();
+		int n = 1 + dx + dy;
+		int x_inc = (n2.getX() > n1.getX()) ? 1 : -1;
+		int y_inc = (n2.getY() > n1.getY()) ? 1 : -1;
+		int error = dx - dy;
+		dx *= 2;
+		dy *= 2;
+		
+		for (; n > 0; --n) {
+			if(unitRadius > nodes[y][x].getMaxUnitRadius())
+				return false;
+			
+			if (error > 0) {
+				x += x_inc;
+				error -= dy;
+			}
+			else {
+				y += y_inc;
+				error += dx;
+			}
+		}
+		
+		return true;
 	}
 }
