@@ -1,6 +1,6 @@
 #version 110
 
-vec3 reflect3f(vec3 lightDirection, vec3 normal);
+vec3 reflect3f(vec3 incident, vec3 normal);
 
 varying vec3 varyingColour;
 
@@ -29,7 +29,7 @@ void main()
 	gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
 }
 
-vec3 reflect3f(vec3 lightDirection, vec3 normal)
+vec3 reflect3f(vec3 incident, vec3 normal)
 {
-	return (lightDirection - 2.0 * dot(lightDirection, normal) * normal);
+	return (incident - 2.0 * dot(incident, normal) * normal);
 }

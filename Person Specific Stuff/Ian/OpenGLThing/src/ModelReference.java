@@ -10,6 +10,7 @@ public class ModelReference
 	static Model level;
 	static Model barracks;
 	static Model die;
+	static Model reactor;
 	
 	public static void loadModels()
 	{
@@ -17,17 +18,18 @@ public class ModelReference
 		
 		try
 		{
-			drake = Resource.loadModel("Drake Mirror.obj", false);
+			drake = Resource.loadModel("Drake Mirror.obj");
 			drake.loadCollisionMask();
-			rocketTank = Resource.loadModel("Vehicle.obj", false);
+			rocketTank = Resource.loadModel("Vehicle.obj");
 			for(int i = 1; i <= 41; i++)
 			{
-				rocketTankAnimation.addFrame(Resource.loadModel("Vehicle Animation\\Vehicle_" + format.format(i) + ".obj", false));
+				rocketTankAnimation.addFrame(Resource.loadModel("Vehicle Animation\\Vehicle_" + format.format(i) + ".obj"));
 			}
-			commandCenter = Resource.loadModel("Base.obj", false);
-			level = Resource.loadModel("Level.obj", false);
-			barracks = Resource.loadModel("Barracks.obj", false);
-			die = Resource.loadModel("Die.obj", false);
+			commandCenter = Resource.loadModel("Base.obj");
+			level = Resource.loadModel("Level.obj");
+			barracks = Resource.loadModel("Barracks.obj");
+			die = Resource.loadModel("Die.obj");
+			reactor = Resource.loadModel("Reactor.obj");
 		}
 		catch(Exception e)
 		{

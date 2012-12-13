@@ -1,6 +1,7 @@
-#version 110
+#version 120
 
 varying vec3 varyingColour;
+
 
 void main() 
 {
@@ -10,7 +11,7 @@ void main()
 
 	vec3 surfaceNormal  = (gl_NormalMatrix * gl_Normal).xyz;
 
-	float diffuseLightIntensity = max(0, dot(surfaceNormal, lightDirection));
+	float diffuseLightIntensity = dot(surfaceNormal, lightDirection);
 
 	varyingColour.rgb = diffuseLightIntensity * gl_Color.rgb;
 
@@ -18,7 +19,7 @@ void main()
 
 	vec3 reflectionDirection = normalize(reflect(-lightDirection, surfaceNormal));
 
-	float specular = max(0.0, dot(surfaceNormal, reflectionDirection));
+	float specular = dot(surfaceNormal, reflectionDirection);
 	if (diffuseLightIntensity != 0) 
 	{
 		float fspecular = pow(specular, gl_FrontMaterial.shininess);

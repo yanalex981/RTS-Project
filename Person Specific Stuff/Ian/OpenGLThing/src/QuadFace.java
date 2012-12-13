@@ -1,6 +1,7 @@
 import org.lwjgl.util.vector.Vector4f;
 
-public class QuadFace {
+public class QuadFace 
+{
 	public Vector4f vertex = new Vector4f();
 	public Vector4f normal = new Vector4f();
 	
