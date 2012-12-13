@@ -159,10 +159,10 @@ public class Node {
 	public void setNeighbours(Node[][] nodes) {
 		ArrayList<Neighbour> neighbours = new ArrayList<Neighbour>(0);
 
-		if (x - 1 > 0) {
+		if (x > 0) {
 			neighbours.add(new Neighbour(nodes[y][x - 1], Map.ADJACENT_COST));
 
-			if (y - 1 > 0)
+			if (y > 0)
 				neighbours.add(new Neighbour(nodes[y - 1][x - 1],
 						Map.DIAGONAL_COST));
 			if (y + 1 < nodes.length)
@@ -173,7 +173,7 @@ public class Node {
 		if (x + 1 < nodes[0].length) {
 			neighbours.add(new Neighbour(nodes[y][x + 1], Map.ADJACENT_COST));
 
-			if (y - 1 > 0)
+			if (y > 0)
 				neighbours.add(new Neighbour(nodes[y - 1][x + 1],
 						Map.DIAGONAL_COST));
 			if (y + 1 < nodes.length)
@@ -181,7 +181,7 @@ public class Node {
 						Map.DIAGONAL_COST));
 		}
 
-		if (y - 1 > 0)
+		if (y > 0)
 			neighbours.add(new Neighbour(nodes[y - 1][x], Map.ADJACENT_COST));
 
 		if (y + 1 < nodes.length)

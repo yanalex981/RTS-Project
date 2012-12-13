@@ -6,7 +6,7 @@
  * @since December 10th, 2012
  */
 
-public class Map {	
+public class Map {
 	/**
 	 * The distance, in game units, to get from a node to a neighbouring
 	 * adjacent Node
@@ -57,7 +57,7 @@ public class Map {
 	public Node[][] getNodes() {
 		return nodes;
 	}
-	
+
 	public Node getNode(int x, int y) {
 		return nodes[y][x];
 	}
@@ -103,13 +103,12 @@ public class Map {
 		n.setMaxUnitRadius(MAX_RADIUS_COST);
 
 		for (Neighbour neighbour : n.getNeighbours()) {
-			if (neighbour.getNode().getMaxUnitRadius() == previousUnitRadius
-					+ neighbour.getCost())
+			if (neighbour.getNode().getMaxUnitRadius() >= previousUnitRadius + neighbour.getCost())
 				setUnblockedUnitRadius(neighbour.getNode());
-			else if (neighbour.getNode().getMaxUnitRadius() < previousUnitRadius
-					+ neighbour.getCost())
-				setUnitRadius(n, neighbour.getNode().getMaxUnitRadius()
-						+ neighbour.getCost());
+			else if(previousUnitRadius == 0 && neighbour.getNode().getMaxUnitRadius() >= previousUnitRadius + neighbour.getCost() / 2)
+				setUnblockedUnitRadius(neighbour.getNode());
+			else if (neighbour.getNode().getMaxUnitRadius() < previousUnitRadius + neighbour.getCost())
+				setUnitRadius(n, neighbour.getNode().getMaxUnitRadius() + neighbour.getCost());
 		}
 	}
 
@@ -128,14 +127,19 @@ public class Map {
 
 		n.setMaxUnitRadius(radius);
 
-		for (Neighbour neighbour : n.getNeighbours())
-			setUnitRadius(neighbour.getNode(), radius + neighbour.getCost());
+		if (radius == 0) {
+			for (Neighbour neighbour : n.getNeighbours())
+				setUnitRadius(neighbour.getNode(), radius + neighbour.getCost() / 2);
+		} else {
+			for (Neighbour neighbour : n.getNeighbours())
+				setUnitRadius(neighbour.getNode(), radius + neighbour.getCost());
+		}
 	}
-	
+
 	public int getHeight() {
 		return nodes.length;
 	}
-	
+
 	public int getWidth() {
 		return nodes[0].length;
 	}
