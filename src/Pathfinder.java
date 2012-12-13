@@ -154,6 +154,7 @@ public class Pathfinder {
 	
 	/**
 	 * Raytraces between 2 Nodes on the map to check for visibility
+	 * from http://playtechs.blogspot.ca/2007/03/raytracing-on-grid.html
 	 * 
 	 * @param n1 The Node to raytrace from
 	 * @param n2 The Node to raytrace to
