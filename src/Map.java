@@ -48,6 +48,29 @@ public class Map {
 				nodes[y][x].setNeighbours(nodes);
 		}
 	}
+	
+	/**
+	 * Checks a position and radius and sees if it collides with a position on the Map
+	 * @param position The poisiton on the map to check
+	 * @param unitRadius The radius to check for
+	 * @return boolean Whether or not the position given is empty
+	 */
+	public boolean checkCollision(double x, double y, int unitRadius) {
+		Node temp = nodes[(int) y][(int) x];
+		
+		if(unitRadius > temp.getMaxUnitRadius())
+			return false;
+		
+		for(Unit u : temp.getUnits() {
+			int minDistBetween = u.getCollisionRadius() + unitRadius;
+			distBetween *= distBetween;
+			
+			if(u.getCurrentPosition().distanceSq(x, y) < minDistBetween)
+				return false;
+		}
+		
+		return true;
+	}
 
 	/**
 	 * Returns the Nodes that make up this map.
@@ -60,6 +83,34 @@ public class Map {
 
 	public Node getNode(int x, int y) {
 		return nodes[y][x];
+	}
+	
+	public void moveUnit(Unit u) {
+		double deltaX = Math.sin(u.getAngleDegrees()) * u.getSpeed / 10.0;
+		double deltaY = Math.cos(u.getAngleDegrees()) * u.getSpeed / 10.0;
+		
+		if(checkCollision(u.getX() + deltaX, u.getY() + deltaY, u.getUnitRadius()))
+			u.move(deltaX, deltaY);
+			
+		setUnitGridPosition();
+	}
+	
+	public void setUnitGridPosition(Unit u, Point2D.Double originalPoint) {
+		if(originalPoint == null)
+			nodes[(int) u.getY()][(int) u.getX()].addUnit(u);
+			
+		if(originalPoint.getX() == u.getX() && originalPoint.getY() == u.getY())
+			return;
+		
+		nodes[(int) u.getY()][(int) u.getX()].addUnit(u);
+		nodes[(int) originalPoint.getY()][(int) originalPoint.getX()].removeUnit(u);
+	}
+	
+	public void update() {
+		for(int y = 0; y < nodes.length; y++)
+			for(int x = 0; x < nodes[y].length; x++)
+				for(Unit u : nodes[y][x].getUnits())
+					moveUnit(u);
 	}
 
 	/**
