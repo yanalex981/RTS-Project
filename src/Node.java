@@ -29,6 +29,8 @@ public class Node {
 
 	/** The y-coordinate of this Node on the map grid */
 	private int y;
+	
+	private ArrayList<Unit> unitsOnGrid;
 
 	/**
 	 * Initializes the Node
@@ -43,6 +45,20 @@ public class Node {
 		this.y = y;
 		maxUnitRadius = Map.MAX_RADIUS_COST;
 	}
+	
+	public void Unit[] getUnits() {
+		return unitsOnGrid.toArray(new Unit[0]);
+	}
+	
+	public void addUnit(Unit u) {
+		unitsOnGrid.add(u);
+	}
+	
+	public void removeUnit(Unit u) {
+		unitsOnGrid.remove(u);
+	}
+	
+	public void 
 
 	/**
 	 * Returns the total estimated cost of the path through this Node
