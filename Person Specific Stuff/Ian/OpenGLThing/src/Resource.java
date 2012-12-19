@@ -98,8 +98,8 @@ public class Resource
 
 	public static boolean pointRectangleCollision(Vector3f point, float xMin, float xMax, float zMin, float zMax)
 	{
-		System.out.println("Point: " + point);
-		System.out.println("Min : " + xMin + ", " + zMin + " Max: " + xMax + ", " + zMax);
+		//System.out.println("Point: " + point);
+		//System.out.println("Min : " + xMin + ", " + zMin + " Max: " + xMax + ", " + zMax);
 
 		if (point.x > xMin && point.x < xMax && point.z > zMin && point.z < zMax)
 			return true;
@@ -110,17 +110,6 @@ public class Resource
 	public static Vector4f mouseVector(Vector3f rotation, Vector4f position, Matrix4f rMatrix)
 	{
 		Vector4f mVector = new Vector4f((float) Mouse.getX() * 2 / Display.getWidth() - 1, (float) Mouse.getY() * 2 / Display.getHeight() - 1, -1, 1);
-
-		//v.x = (2 * Mouse.getX() / width) - 1)/(Znear/width)
-		//v.y = (2 * Mouse.getY() / height) - 1)/(Znear/height)
-		//v.z = 1;
-
-		//System.out.println(mVector);
-
-		//Matrix4f tMatrix = new Matrix4f();
-		//tMatrix.rotate((float) Math.toRadians(rotation.x), new Vector3f(1, 0, 0));
-		//tMatrix.rotate((float) Math.toRadians(rotation.y), new Vector3f(0, 1, 0));
-		//tMatrix.rotate((float) Math.toRadians(rotation.z), new Vector3f(0, 0, 1));
 		
 		FloatBuffer modMatrix = BufferUtils.createFloatBuffer(16);
 		FloatBuffer projMatrix = BufferUtils.createFloatBuffer(16);
@@ -137,19 +126,10 @@ public class Resource
 		Matrix4f.mul(modelMatrix, projectionMatrix, temp);
 		Matrix4f.mul(temp, rMatrix, temp);
 		temp.invert();
-		
-		//System.out.println(temp);
-		//System.out.println(mVector);
 		Matrix4f.transform(temp, mVector, mVector);
 
-		//System.out.println(mVector);
 		mVector.normalise();
-		//System.out.println(mVector);
-
-		//System.out.println("mVector: (" + mVector.x + ", " + mVector.y + ", " + mVector.z + ")");
-		//System.out.println("Mouse Position: (" + Mouse.getX() + ", " + Mouse.getY() + ")");
-		//System.out.println("Global Position: (" + position.x + ", " + position.y + ", " + position.z + ")");
-
+		
 		return mVector;
 	}
 
@@ -164,8 +144,8 @@ public class Resource
 		normal.normalise();
 		d = Vector3f.dot(normal, a);
 
-		System.out.println("Plane Normal: " + normal);
-		System.out.println("Point on Plane: " + planePoint);
+		//System.out.println("Plane Normal: " + normal);
+		//System.out.println("Point on Plane: " + planePoint);
 
 		return new Plane(normal, d, planePoint);
 	}
@@ -187,7 +167,7 @@ public class Resource
 		{
 			Unit unit = unitList.get(i);
 
-			System.out.println(unit.getName());
+			//System.out.println(unit.getName());
 			Vector3f point1, point2, point3;
 			point1 = new Vector3f(unit.getModel().xMin, unit.getModel().yMin, unit.getModel().zMin);
 			point2 = new Vector3f(unit.getModel().xMin, unit.getModel().yMin, unit.getModel().zMax);
@@ -196,7 +176,7 @@ public class Resource
 			float scalar = linePlaneIntersection(new Vector3f(mVector.x, mVector.y, mVector.z),
 												new Vector3f(position.x, position.y, position.z),plane);
 
-			System.out.println("Scalar: " + scalar);
+			//System.out.println("Scalar: " + scalar);
 
 			if (pointRectangleCollision(new Vector3f(-position.x + mVector.x * scalar, -position.y + mVector.y * scalar, -position.z + mVector.z * scalar), unit.getModel().xMin + unit.getPosition().x, unit.getModel().xMax + unit.getPosition().x, unit.getModel().zMin + unit.getPosition().z, unit.getModel().zMax + unit.getPosition().z) && scalar > 0)
 			{

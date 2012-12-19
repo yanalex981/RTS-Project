@@ -65,7 +65,7 @@ public class Main
 			// Display.setDisplayMode(Display.getDesktopDisplayMode());
 			Display.setDisplayMode(new DisplayMode(800, 600));
 			// Display.setFullscreen(true);
-			Display.setVSyncEnabled(true);
+			//Display.setVSyncEnabled(true);
 			System.out.println("Display: " + Display.getDisplayMode().getWidth() + "x" + Display.getDisplayMode().getHeight() + "x" + Display.getDisplayMode().getBitsPerPixel() + " " + Display.getDisplayMode().getFrequency() + "Hz");
 			Display.create();
 		} catch (Exception e)
@@ -77,28 +77,22 @@ public class Main
 
 		ModelReference.loadModels();
 
-		unitList.add(new Unit(ModelReference.level, null, m));
-		unitList.add(new Unit(ModelReference.rocketTank, ModelReference.rocketTankAnimation, m));
-		unitList.add(new Unit(ModelReference.barracks, null, m));
-		unitList.add(new Unit(ModelReference.reactor, null, m));
-		// unitList.add(new Unit(ModelReference.commandCenter, null));
-		// unitList.add(new Unit(ModelReference.drake, null));
+		unitList.add(new Unit(ModelReference.level, null, "Level", m));
+		unitList.add(new Unit(ModelReference.rocketTank, ModelReference.rocketTankAnimation, "Rocket Tank", m));
+		unitList.add(new Building(ModelReference.barracks, null, "Barracks", m));
+		unitList.add(new Unit(ModelReference.reactor, null, "Reactor", m));
 
 		unitList.get(0).translate(0, -10, -20);
 		unitList.get(1).translate(-2, -9, -20);
 		unitList.get(2).translate(5, -10, -13);
 		unitList.get(3).translate(-5, -10, -26);
-		//unitList.get(3).rotate(45, 0, 0);
+		// unitList.get(3).rotate(45, 0, 0);
 		// unitList.get(4).translate(-4, -10, -10);
 		unitList.get(0).setColour(1, 0, 0);
 		unitList.get(1).setColour(1, 0, 0);
 		unitList.get(2).setColour(1, 1, 0);
 		unitList.get(3).setColour(0, 1, 0);
 		// unitList.get(4).setColour(0, 0, 1);
-		unitList.get(0).setName("Level");
-		unitList.get(1).setName("Rocket Tank");
-		unitList.get(2).setName("Barracks");
-		unitList.get(3).setName("Reactor");
 		unitList.get(0).setState(Unit.SETUP);
 
 		glViewport(0, 0, Display.getWidth(), Display.getHeight());

@@ -6,25 +6,27 @@ public class Unit
 {
 	public static int WAIT = 0;
 	public static int SETUP = 1;
-	private int state;
-	private Vector4f velocity = new Vector4f(0, 0, 0, 1);
-	private Vector3f rotation = new Vector3f(0, 0, 0);
-	private Vector3f position = new Vector3f(0, 0, 0);
-	private Vector3f colour = new Vector3f(1, 1, 1);
-	private Model model = new Model();
-	private Animation setUpAnimation = new Animation();
-	private int animationFrame;
-	private long prevTime;
-	private String objName;
-	private Main m;
+	protected int state;
+	protected Vector4f velocity = new Vector4f(0, 0, 0, 1);
+	protected Vector3f rotation = new Vector3f(0, 0, 0);
+	protected Vector3f position = new Vector3f(0, 0, 0);
+	protected Vector3f colour = new Vector3f(1, 1, 1);
+	protected Model model = new Model();
+	protected Animation setUpAnimation = new Animation();
+	protected int animationFrame;
+	protected long prevTime;
+	protected boolean active;
+	protected String objName;
+	protected Main m;
 
-	public Unit(Model model, Animation setUpAnimation, Main m)
+	public Unit(Model model, Animation setUpAnimation, String objName, Main m)
 	{
 		this.animationFrame = 0;
 		this.model = model;
 		this.setUpAnimation = setUpAnimation;
 		this.state = WAIT;
 		this.m = m;
+		this.objName = objName;
 	}
 
 	public void draw(long time)
@@ -120,9 +122,14 @@ public class Unit
 		this.state = state;
 	}
 	
+	public void setActive(boolean status)
+	{
+		active = status;
+	}
+	
 	public void keyOneCommand()
 	{
-		Unit unit = new Unit(ModelReference.reactor, null, m);
+		Unit unit = new Unit(ModelReference.reactor, null, "Reactor", m);
 		unit.translate(Math.round(this.position.x), Math.round(this.position.y), Math.round(this.position.z + this.model.zCollisionRadii + 1));
 		m.unitList.add(unit);
 		m.selection = unit;
@@ -140,4 +147,6 @@ public class Unit
 		position.z += velocity.z;
 		// loadMaskProperties();
 	}
+	
+
 }
