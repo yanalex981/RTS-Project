@@ -22,9 +22,11 @@ void main()
 	
 	float specular = dot(surfaceNormal, reflectionDirection);
 
-	float fspecular = pow(specular, gl_FrontMaterial.shininess);
-	varyingColour.rgb += vec3(fspecular, fspecular, fspecular);
+	{
+		float fspecular = pow(specular, gl_FrontMaterial.shininess);
 	
+		varyingColour.rgb += vec3(fspecular, fspecular, fspecular);
+	}
 	
 	gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
 }
