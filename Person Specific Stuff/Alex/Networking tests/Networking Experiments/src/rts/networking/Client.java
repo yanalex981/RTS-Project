@@ -1,29 +1,83 @@
 package rts.networking;
 
+import java.awt.FlowLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.util.Scanner;
+import java.net.SocketException;
+import java.net.UnknownHostException;
 
-public class Client {
-	public static void main(String[] args) throws IOException {
-		byte[] buf = new byte[] {'T', 'E', 'S', 'T'};
+import javax.swing.JButton;
+import javax.swing.JFrame;
+
+public class Client extends JFrame {
+	private static final long serialVersionUID = -370906439160448533L;
+	
+	JButton connect = new JButton("Connect");
+	JButton disconnect = new JButton("Disconnect");
+	
+	DatagramSocket socket;
+	DatagramPacket packet;
+	
+	byte[] c = "connect".getBytes();
+	byte[] d = "disconnect".getBytes();
+	
+	public Client() {
+		setTitle("Client");
+		setLayout(new FlowLayout());
+		setDefaultCloseOperation(EXIT_ON_CLOSE);
 		
-//		DatagramSocket socket = new DatagramSocket(666, InetAddress.getLocalHost());
-		DatagramSocket socket = new DatagramSocket();
+		add(connect);
+		add(disconnect);
 		
-		DatagramPacket out;// = new DatagramPacket(buf, buf.length, InetAddress.getLocalHost(), 666);
-		
-		String in = "";
-		Scanner scan = new Scanner(System.in);
-		
-		while (!in.equals("quit")) {
-			System.out.print("Enter something: ");
-			in = scan.nextLine();
-			buf = in.getBytes();
-			out = new DatagramPacket(buf, buf.length, InetAddress.getLocalHost(), 666);
-			socket.send(out);
+		try {
+			socket = new DatagramSocket();
 		}
+		catch (SocketException e1) {
+			e1.printStackTrace();
+		}
+		
+		connect.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				try {
+					packet = new DatagramPacket(c, c.length, InetAddress.getLocalHost(), 666);
+					socket.send(packet);
+				}
+				catch (UnknownHostException e1) {
+					e1.printStackTrace();
+				}
+				catch (IOException e1) {
+					e1.printStackTrace();
+				}
+			}
+		});
+		
+		disconnect.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				try {
+					packet = new DatagramPacket(d, d.length, InetAddress.getLocalHost(), 666);
+					socket.send(packet);
+				}
+				catch (UnknownHostException e1) {
+					e1.printStackTrace();
+				}
+				catch (IOException e1) {
+					e1.printStackTrace();
+				}
+			}
+		});
+		
+		setResizable(false);
+		pack();
+		setVisible(true);
+	}
+	
+	public static void main(String[] args) {
+		new Client();
 	}
 }

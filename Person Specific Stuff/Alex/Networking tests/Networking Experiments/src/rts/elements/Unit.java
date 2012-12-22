@@ -10,7 +10,8 @@ public class Unit extends ControllableObject {
 	private boolean attacking;
 	private boolean idling;
 	
-	public Unit(int x, int y, int speed, int hp, int attackRange, int damage) {
+	public Unit(int id, double x, double y, int speed, int hp, double attackRange, int damage) {
+		this.id = id;
 		this.x = x;
 		this.y = y;
 		this.speed = speed;

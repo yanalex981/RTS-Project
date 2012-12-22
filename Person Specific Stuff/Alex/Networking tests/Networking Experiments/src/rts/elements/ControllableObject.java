@@ -1,8 +1,7 @@
 package rts.elements;
 
-
-
 public abstract class ControllableObject {
+	protected int id;
 	protected double x;
 	protected double y;
 	protected int hp;
@@ -49,5 +48,9 @@ public abstract class ControllableObject {
 	
 	public boolean isDestroyed() {
 		return destroyed;
+	}
+	
+	public int getID() {
+		return id;
 	}
 }
