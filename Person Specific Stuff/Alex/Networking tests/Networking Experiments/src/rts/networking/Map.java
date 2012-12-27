@@ -15,4 +15,9 @@ public class Map {
 	public int getWidth() {
 		return w;
 	}
+	
+	public static Map readMap() {
+		// NEED TO STANDARDIZE MAP FORMAT
+		return new Map();
+	}
 }
