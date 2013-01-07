@@ -1,5 +1,4 @@
-/**
- * This class is one Node contained in the game map. Each Node is one grid square
+* This class is one Node contained in the game map. Each Node is one grid square
  * (10 game units by 10 game units), and contains information used for pathfinding.
  * 
  * @author Bobby Meagher
@@ -24,13 +23,16 @@ public class Node {
 	/** The Node that comes before this Node on the current pathfinding cycle */
 	private Node parent;
 
+	/**
+	 * The list of units on this Node
+	 */
+	private ArrayList<Unit> unitsOnGrid;
+
 	/** The x-coordinate of this Node on the map grid */
 	private int x;
 
 	/** The y-coordinate of this Node on the map grid */
 	private int y;
-	
-	private ArrayList<Unit> unitsOnGrid;
 
 	/**
 	 * Initializes the Node
@@ -44,21 +46,18 @@ public class Node {
 		this.x = x;
 		this.y = y;
 		maxUnitRadius = Map.MAX_RADIUS_COST;
+		unitsOnGrid = new ArrayList<Unit>(0);
 	}
-	
-	public void Unit[] getUnits() {
-		return unitsOnGrid.toArray(new Unit[0]);
-	}
-	
+
+	/**
+	 * Adds a unit to this Node
+	 * 
+	 * @param u
+	 *            The unit to add to this Node
+	 */
 	public void addUnit(Unit u) {
 		unitsOnGrid.add(u);
 	}
-	
-	public void removeUnit(Unit u) {
-		unitsOnGrid.remove(u);
-	}
-	
-	public void 
 
 	/**
 	 * Returns the total estimated cost of the path through this Node
@@ -117,6 +116,15 @@ public class Node {
 	}
 
 	/**
+	 * Returns the units inside this Node
+	 * 
+	 * @return The units inside this Node
+	 */
+	public Unit[] getUnits() {
+		return unitsOnGrid.toArray(new Unit[0]);
+	}
+
+	/**
 	 * Returns the x-coordinate of this Node
 	 * 
 	 * @return The x-coordinate of the Node
@@ -135,6 +143,20 @@ public class Node {
 	}
 
 	/**
+	 * Removes a Unit from this Node
+	 * 
+	 * @param u
+	 *            The unit to remove from this Node
+	 */
+	public void removeUnit(Unit u) {
+		unitsOnGrid.remove(u);
+	}
+	
+	public void setG(int g) {
+		this.g = g;
+	}
+
+	/**
 	 * Sets this Node up to be used for pathfinding by setting its h, g and
 	 * parent values
 	 * 
@@ -150,10 +172,20 @@ public class Node {
 	public void setHeuristic(int endX, int endY, Node parent, int cost) {
 		int deltaX = Math.abs(endX - x);
 		int deltaY = Math.abs(endY - y);
-
-		this.h = deltaX + deltaY;
+		this.h = (int) (Math.sqrt(deltaX * deltaX + deltaY * deltaY) * 10);
+		/*if(deltaY > deltaX)
+			this.h = deltaX * Map.DIAGONAL_COST + (deltaY - deltaX) * Map.ADJACENT_COST;
+		else
+			this.h = deltaY * Map.DIAGONAL_COST + (deltaX - deltaY) * Map.ADJACENT_COST;*/
+		
 		this.parent = parent;
-		this.g = parent.getG() + cost;
+		
+		if(parent != null) {
+			int newG = parent.getG() + cost;
+
+			if(newG > g)
+				g = newG;
+		}
 	}
 
 	/**
