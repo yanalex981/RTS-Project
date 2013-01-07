@@ -7,7 +7,6 @@
  */
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 
 public class Pathfinder {
 
@@ -16,17 +15,25 @@ public class Pathfinder {
 
 	public static void main(String[] args) {
 		final int MAPSIZE = 176;
-		final int CYCLES = 1000;
+		final int CYCLES = 10000;
+		final int TESTNUM = 100;
 
 		Pathfinder pathfinder = new Pathfinder(new Map(MAPSIZE, MAPSIZE));
 
 		Node startNode = nodes[0][0];
 		Node endNode = nodes[MAPSIZE - 1][MAPSIZE - 1];
 
-		long time = System.nanoTime();
-		for (int i = 0; i < CYCLES; i++)
-			pathfinder.findPath(startNode, endNode, 0);
-		System.out.println(CYCLES / ((System.nanoTime() - time) / 1000000000D));
+		long mainTime = System.nanoTime();
+		for (int q = 0; q < TESTNUM; q++) {
+			long time = System.nanoTime();
+			for (int i = 0; i < CYCLES; i++)
+				pathfinder.findPath(startNode, endNode, 0);
+			System.out.println((System.nanoTime() - time) / 1000000000D);
+		}
+		System.out.println("\n" + (System.nanoTime() - mainTime) / 1000000000D);
+		System.out.println(CYCLES * TESTNUM
+				/ ((System.nanoTime() - mainTime) / 1000000000D)
+				+ "\n");
 
 		for (Node node : pathfinder.findPath(startNode, endNode, 0))
 			System.out.println(node.getX() + " " + node.getY());
@@ -48,18 +55,21 @@ public class Pathfinder {
 	 * @param array
 	 * @param toAdd
 	 */
-	private void addSorted(LinkedList<Node> array, Node toAdd) {
+	private void addSorted(ArrayList<Node> array, Node toAdd) {
 		if (array.size() == 0) {
-			array.addFirst(toAdd);
+			array.add(toAdd);
 			return;
 		}
 
 		int cost = toAdd.getF();
-		int count;
-		for (count = 0; count < array.size(); count++)
-			if (cost >= array.get(count).getF())
+		for (int count = 0; count < array.size(); count++) {
+			if (cost < array.get(count).getF()) {
+				array.add(count, toAdd);
 				break;
-		array.add(count, toAdd);
+			}
+		}
+
+		array.add(toAdd);
 	}
 
 	/**
@@ -77,23 +87,26 @@ public class Pathfinder {
 	 * @return The ArrayList of waypoint Nodes to get from the startNode to the
 	 *         endNode
 	 */
-	public ArrayList<Node> findPath(Node startNode, Node endNode, int unitRadius) {
+	public ArrayList<Node> findPath(Node startNode, Node endNode,
+			double unitRadius) {
 		boolean[][] hasChecked = new boolean[nodes.length][nodes[0].length];
 
 		// Used to find the closest path to the goal if no path exists
 		Node closestNode = startNode;
 
-		startNode.setParent(null);
+		startNode.setHeuristic(endNode.getX(), endNode.getY(), null, 0);
+		startNode.setG(0);
 
-		LinkedList<Node> open = new LinkedList<Node>();
-		open.addLast(startNode);
+		ArrayList<Node> open = new ArrayList<Node>();
+		open.add(startNode);
 
 		while (open.size() > 0) {
-			Node temp = open.removeLast();
+			Node temp = open.remove(0);
+			hasChecked[temp.getY()][temp.getX()] = true;
 
 			if (temp == endNode) {
 				ArrayList<Node> path = reconstructPath(temp);
-				smoothPath(path, unitRadius)
+				smoothPath(path, unitRadius);
 				return path;
 			}
 
@@ -115,6 +128,8 @@ public class Pathfinder {
 			}
 		}
 
+		System.out.println("path not found! " + closestNode.getX() + " "
+				+ closestNode.getY());
 		return reconstructPath(closestNode);
 	}
 
@@ -136,32 +151,40 @@ public class Pathfinder {
 
 		return path;
 	}
-	
+
 	/**
 	 * Smooths a precalculated path based on unit radius
 	 * 
-	 * @param path The precalculated path of Nodes
-	 * @param unitRadius The radius of the unit on the path
+	 * @param path
+	 *            The precalculated path of Nodes
+	 * @param unitRadius
+	 *            The radius of the unit on the path
 	 */
-	private void smoothPath(ArrayList<Node> path, int unitRadius) {
-		if(path.size() <= 2)
+	private void smoothPath(ArrayList<Node> path, double unitRadius) {
+		if (path.size() <= 2)
 			return;
-		
-		for(int i = 2; i < path.size(); path++)
-			if(raytrace(path.get(i - 2), path.get(i), unitRadius))
-				path.remove(i - 1);
+
+		for (int i = 0; i < path.size() - 2; i++) {
+			if (raytrace(path.get(i), path.get(i + 2), unitRadius)) {
+				path.remove(i + 1);
+				i--;
+			}
+		}
 	}
-	
+
 	/**
-	 * Raytraces between 2 Nodes on the map to check for visibility
-	 * from http://playtechs.blogspot.ca/2007/03/raytracing-on-grid.html
+	 * Raytraces between 2 Nodes on the map to check for visibility from
+	 * http://playtechs.blogspot.ca/2007/03/raytracing-on-grid.html
 	 * 
-	 * @param n1 The Node to raytrace from
-	 * @param n2 The Node to raytrace to
-	 * @param unitRadius The radius of the unit to check for visibility
+	 * @param n1
+	 *            The Node to raytrace from
+	 * @param n2
+	 *            The Node to raytrace to
+	 * @param unitRadius
+	 *            The radius of the unit to check for visibility
 	 * @return Whether or not Node 2 is visible from Node 1
 	 */
-	private boolean raytrace(Node n1, Node n2, int unitRadius) {
+	private boolean raytrace(Node n1, Node n2, double unitRadius) {
 		int dx = Math.abs(n2.getX() - n1.getX());
 		int dy = Math.abs(n2.getY() - n1.getY());
 		int x = n1.getX();
@@ -172,21 +195,20 @@ public class Pathfinder {
 		int error = dx - dy;
 		dx *= 2;
 		dy *= 2;
-		
+
 		for (; n > 0; --n) {
-			if(unitRadius > nodes[y][x].getMaxUnitRadius())
+			if (unitRadius > nodes[y][x].getMaxUnitRadius())
 				return false;
-			
+
 			if (error > 0) {
 				x += x_inc;
 				error -= dy;
-			}
-			else {
+			} else {
 				y += y_inc;
 				error += dx;
 			}
 		}
-		
+
 		return true;
 	}
 }
