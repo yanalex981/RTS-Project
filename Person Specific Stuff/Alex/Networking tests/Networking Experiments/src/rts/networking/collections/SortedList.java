@@ -1,12 +1,6 @@
 package rts.networking.collections;
 
-/*
- * TODO adding		[x]
- * TODO removing	[x]
- * TODO seeking		[?]
- * TODO exists()	[x]
- * TODO getLargest	[x]
- */
+// seeking [?]
 public class SortedList {
 	private Node root;
 	private Node end;
@@ -80,15 +74,6 @@ public class SortedList {
 		}
 	}
 	
-	public void printContents() {
-		Node temp = root;
-		
-		while (temp != null) {
-			System.out.print(temp.value);
-			temp = temp.next;
-		}
-	}
-	
 	@Override
 	public String toString() {
 		String str = "";
@@ -152,5 +137,14 @@ public class SortedList {
 	
 	public int size() {
 		return size;
+	}
+
+	public void printContents() {
+		Node temp = root;
+		
+		while (temp != null) {
+			System.out.print(temp.value);
+			temp = temp.next;
+		}
 	}
 }

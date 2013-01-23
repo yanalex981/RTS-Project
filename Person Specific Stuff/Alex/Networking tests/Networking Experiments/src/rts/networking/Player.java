@@ -1,35 +1,32 @@
 package rts.networking;
 
 import java.net.DatagramPacket;
-import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+
+import rts.networking.collections.UnitList;
 
 public class Player implements Runnable {
 	private String name;
 	private InetAddress playerAddress;
-	private InetAddress serverAddress;
-	private DatagramSocket serverSocket;
 	private DatagramPacket packets;
+	private UnitList units;
 	private int port;
 	
 	public Player(InetAddress server, int port) {
 		try {
+			// TODO get the player's address
+			// TODO establish packet structures
 			setPlayerAddress(InetAddress.getLocalHost());
 		}
 		catch (UnknownHostException e) {
 			e.printStackTrace();
 		}
-		
-		setServerAddress(server);
 	}
 	
+	// TODO figure out the player listening threads
 	@Override
 	public void run() {
-		
-	}
-	
-	public static void main(String[] args) {
 		
 	}
 
@@ -49,22 +46,6 @@ public class Player implements Runnable {
 		this.playerAddress = playerAddress;
 	}
 
-	public InetAddress getServerAddress() {
-		return serverAddress;
-	}
-
-	public void setServerAddress(InetAddress serverAddress) {
-		this.serverAddress = serverAddress;
-	}
-
-	public DatagramSocket getServerSocket() {
-		return serverSocket;
-	}
-
-	public void setServerSocket(DatagramSocket serverSocket) {
-		this.serverSocket = serverSocket;
-	}
-
 	public DatagramPacket getPackets() {
 		return packets;
 	}
@@ -79,5 +60,9 @@ public class Player implements Runnable {
 
 	public void setPort(int port) {
 		this.port = port;
+	}
+	
+	public int getNumberOfUnits() {
+		return units.size();
 	}
 }

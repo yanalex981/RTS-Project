@@ -7,19 +7,12 @@ import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 
+
 // Important classes:
 // DatagramSocket
 // DatagramPacket
 // MulticastSocket
 public class Server {
-	/* TODO
-	 * Generate a random int
-	 * Assign to player
-	 * Attach to packet
-	 * Verify number
-	 * To prevent small hacks
-	 */
-
 	DatagramSocket socket;
 	DatagramPacket packet;
 	byte[] data = new byte[666];
