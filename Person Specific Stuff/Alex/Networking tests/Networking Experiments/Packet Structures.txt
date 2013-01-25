@@ -1,0 +1,34 @@
+Connect
+	char[] username
+
+Disconnect
+	char[] username
+
+Win
+	char[] username
+
+Lose
+	char[] username
+
+Move
+	int ID
+	float x
+	float y
+
+Attack
+	int ID
+	int targetID
+
+Build
+	int typeID
+	float x
+	float y
+
+Update HP
+	int unitID
+	int newHp
+
+Update XY
+	int unitID
+	float newX
+	float newY
