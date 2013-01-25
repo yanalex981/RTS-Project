@@ -14,32 +14,20 @@ public class DataInterpretor {
 		return dataIn.readByte();
 	}
 	
-	public static int[] getIntData(byte[] packet, int offset) throws IOException {
+	public static int getIntData(byte[] packet, int offset) throws IOException {
 		ByteArrayInputStream byteIn = new ByteArrayInputStream(packet);
 		DataInputStream dataIn = new DataInputStream(byteIn);
 		dataIn.skipBytes(offset);
 		
-		int[] data = new int[dataIn.available() / (Integer.SIZE / 8)];
-		
-		for (int i = 0; i < data.length; ++i) {
-			data[i] = dataIn.readInt();
-		}
-		
-		return data;
+		return dataIn.readInt();
 	}
 	
-	public static float[] getFloatData(byte[] packet, int offset) throws IOException {
+	public static float getFloatData(byte[] packet, int offset) throws IOException {
 		ByteArrayInputStream byteIn = new ByteArrayInputStream(packet);
 		DataInputStream dataIn = new DataInputStream(byteIn);
 		dataIn.skipBytes(offset);
 		
-		float[] data = new float[dataIn.available() / (Float.SIZE / 8)];
-		
-		for (int i = 0; i < data.length; ++i) {
-			data[i] = dataIn.readFloat();
-		}
-		
-		return data;
+		return dataIn.readFloat();
 	}
 	
 	public static String getStringData(byte[] packet, int offset, int stringLength) throws IOException {
@@ -51,10 +39,7 @@ public class DataInterpretor {
 		String s = "";
 		
 		for (int i = 0; i < length; ++i) {
-			char temp = dataIn.readChar();
-			System.out.println(temp);
-//			s += dataIn.readChar();
-			s += temp;
+			s += dataIn.readChar();
 		}
 		
 		return s;

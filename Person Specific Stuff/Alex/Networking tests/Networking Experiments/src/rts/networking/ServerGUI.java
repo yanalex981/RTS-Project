@@ -21,7 +21,6 @@ import java.util.Vector;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import javax.swing.BoxLayout;
-import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
@@ -32,7 +31,6 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 
 import rts.networking.gui.ComboBoxFileModel;
-import rts.networking.gui.ListPlayerModel;
 
 public class ServerGUI extends JFrame {
 	private static final long serialVersionUID = -357002641827289509L;
@@ -42,25 +40,22 @@ public class ServerGUI extends JFrame {
 	Map map;
 	
 	ArrayList<File> mapFiles = new ArrayList<File>(0);
-	HashSet<InetAddress> ips = new HashSet<InetAddress>(0);
+//	HashSet<InetAddress> ips = new HashSet<InetAddress>(0);
 	HashMap<InetAddress, Player> players = new HashMap<InetAddress, Player>(0);
 	
 	DatagramPacket packetIn;
 	DatagramPacket packetOut;
 	DatagramSocket server;
 	
-	// TODO add a timer to process unfinished tasks in the task queue?
 	Timer executor = new Timer();
 	Thread sender;
 	Thread receiver;
 	Thread interpretor;
-	
-	// TODO add a queue to store packets that have not finished execution?
+
 	Vector<DatagramPacket> packetsInUse = new Vector<DatagramPacket>();
 	LinkedBlockingQueue<DatagramPacket> inbound = new LinkedBlockingQueue<DatagramPacket>();
 	LinkedBlockingQueue<DatagramPacket> outbound = new LinkedBlockingQueue<DatagramPacket>();
 	
-//	JList lstPlayers = new JList(new String[] {"Player 1", "Player 2", "Player 3"});
 	JList lstPlayers;
 	JButton btnKick = new JButton("Kick");
 	JButton btnInfo = new JButton("Info");
@@ -127,6 +122,10 @@ public class ServerGUI extends JFrame {
 		pack();
 		setVisible(true);
 
+		initializeThreads();
+	}
+	
+	private void initializeThreads() {
 		executor.schedule(new TimerTask() {
 			@Override
 			public void run() {
@@ -184,28 +183,19 @@ public class ServerGUI extends JFrame {
 					// TODO change to gameRunning
 					while (acceptingConnections) {
 						DatagramPacket packet = inbound.poll();
+						int instruction = -1;
 						
 						if (packet == null)
 							continue;
 						
 						// TODO Convert all byte[] to DatagramPacket...
-						int instruction = DataInterpretor.getInstruction(packet.getData());
+						instruction = DataInterpretor.getInstruction(packet.getData());
 						
 						switch (instruction) {
 						case DataFactory.PACKET_CONNECT:
-//							cout(DataInterpretor.getStringData(packet.getData(), 1, 64).trim() + " sent a packet from " + packet.getAddress().toString());
 							if (players.size() != 2) {
 								// TODO change the size now
 							}
-							
-							// get map size
-							// set player size
-							// name size
-							// get player name
-							// add name to name array
-							// get ip
-							// make player
-							// add player to player array
 							
 							break;
 						case DataFactory.PACKET_DISCONNECT:
@@ -238,6 +228,8 @@ public class ServerGUI extends JFrame {
 						case DataFactory.PACKET_BUILD:
 							
 							break;
+						default:
+							continue;
 						}
 					}
 				}
@@ -247,6 +239,70 @@ public class ServerGUI extends JFrame {
 				}
 			}
 		});
+	}
+	
+	private void connect(DatagramPacket packet) throws IOException {
+		// [ ] get map size
+		// [X] get player name
+		// [X] get ip
+		// [X] make player
+		// [X] add player to player array
+		
+		InetAddress ip = packet.getAddress();
+		
+		if (!players.containsKey(ip) && players.size() < map.getPlayerSize()) {
+			String name = DataInterpretor.getStringData(packet.getData(), 1, 64);
+			Player p = new Player(ip, name);
+			players.put(ip, p);
+		}
+		
+		if (players.size() == map.getPlayerSize()) {
+			// TODO code for enable game start
+		}
+	}
+	
+	private void disconnect(DatagramPacket packet) {
+		InetAddress source = packet.getAddress();
+		
+		if (players.containsKey(source)) {
+//			ips.remove(ip);
+//			players.remove(ip);
+			// TODO send disconnect packet?
+			
+		}
+	}
+	
+	private void win(DatagramPacket packet) {
+		
+	}
+	
+	private void lose(DatagramPacket packet) {
+		
+	}
+	
+	private void move(DatagramPacket packet) throws IOException {
+		InetAddress source = packet.getAddress();
+		int unitID = DataInterpretor.getIntData(packet.getData(), 1);
+		int x;
+		int y;
+		
+		
+	}
+	
+	private void attack(DatagramPacket packet) {
+		
+	}
+	
+	private void build(DatagramPacket packet) {
+		
+	}
+	
+	private void updateHP(DatagramPacket packet) {
+		
+	}
+	
+	private void updateXY(DatagramPacket packet) {
+		
 	}
 
 	private void addActionListeners() {
@@ -290,7 +346,6 @@ public class ServerGUI extends JFrame {
 					acceptingConnections = true;
 					
 					players = new HashMap<InetAddress, Player>(map.getPlayerSize());
-					ips = new HashSet<InetAddress>(map.getPlayerSize());
 					
 					receiver.start();
 					cout("Packet receiver thread started");
