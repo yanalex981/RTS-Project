@@ -42,7 +42,7 @@ public class DataFactory {
 	private void addStringToPacket(String data) throws IOException {
 		// TODO implement trimming of string length
 		if (data.length() > STRING_DATA_LENGTH / (Character.SIZE / 8)) {
-			throw new InvalidParameterException("String data too long");
+			dataOut.writeChars(data.substring(0, STRING_DATA_LENGTH));
 		}
 		else {
 			dataOut.writeChars(String.format("%-" + STRING_DATA_LENGTH / (Character.SIZE / 8) + "s", data));
@@ -117,9 +117,8 @@ public class DataFactory {
 		return temp;
 	}
 	
-	public byte[] createMovePacket(String username, int unitID, float x, float y) throws IOException {
+	public byte[] createMovePacket(int unitID, float x, float y) throws IOException {
 		dataOut.writeByte(PACKET_MOVE);
-		addStringToPacket(username);
 		addIntToPacket(unitID);
 		addFloatToPacket(x, y);
 		
@@ -130,9 +129,8 @@ public class DataFactory {
 		return temp;
 	}
 	
-	public byte[] createUpdateXYPacket(String username, int unitID, float newX, float newY) throws IOException {
+	public byte[] createUpdateXYPacket(int unitID, float newX, float newY) throws IOException {
 		dataOut.writeByte(PACKET_UPDATE_XY);
-		addStringToPacket(username);
 		addIntToPacket(unitID);
 		addFloatToPacket(newX, newY);
 		
@@ -143,9 +141,8 @@ public class DataFactory {
 		return temp;
 	}
 	
-	public byte[] createAttackPacket(String username, int unitID, int targetID) throws IOException {
+	public byte[] createAttackPacket(int unitID, int targetID) throws IOException {
 		dataOut.writeByte(PACKET_ATTACK);
-		addStringToPacket(username);
 		addIntToPacket(unitID, targetID);
 		
 		byte[] temp = bytesOut.toByteArray();
@@ -155,9 +152,8 @@ public class DataFactory {
 		return temp;
 	}
 	
-	public byte[] createUpdateHPPacket(String username, int unitID, int targetID, int newHP) throws IOException {
+	public byte[] createUpdateHPPacket(int unitID, int targetID, int newHP) throws IOException {
 		dataOut.writeByte(PACKET_UPDATE_HP);
-		addStringToPacket(username);
 		addIntToPacket(unitID, targetID, newHP);
 		
 		byte[] temp = bytesOut.toByteArray();
@@ -167,10 +163,10 @@ public class DataFactory {
 		return temp;
 	}
 	
-	public byte[] createBuildPacket(String username, int unitType, int x, int y) throws IOException {
+	public byte[] createBuildPacket(int unitType, float x, float y) throws IOException {
 		dataOut.writeByte(PACKET_BUILD);
-		addStringToPacket(username);
-		addIntToPacket(unitType, x, y);
+		addIntToPacket(unitType);
+		addFloatToPacket(x, y);
 		
 		byte[] temp = bytesOut.toByteArray();
 		

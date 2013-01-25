@@ -75,7 +75,6 @@ public class ServerGUI extends JFrame {
 	JPanel pnlSouth = new JPanel();
 	JPanel pnlWest = new JPanel();
 	JPanel pnlPlayers = new JPanel();
-//	JComboBox cboMaps = new JComboBox(mapFiles.toArray);
 	JComboBox cboMaps = new JComboBox();
 	JTextArea txaResults = new JTextArea();
 	JScrollPane scpPlayers = new JScrollPane(lstPlayers);
@@ -108,8 +107,6 @@ public class ServerGUI extends JFrame {
 		
 		pnlPlayers.add(btnKick);
 		pnlPlayers.add(btnInfo);
-		
-//		lstPlayers.setSelectedIndex(0);
 		
 		txaResults.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 11));
 		txaResults.setTabSize(4);
