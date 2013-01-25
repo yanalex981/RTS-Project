@@ -4,20 +4,24 @@ import java.awt.BorderLayout;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.ByteArrayInputStream;
-import java.io.DataInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.Vector;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import javax.swing.BoxLayout;
+import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
@@ -27,28 +31,37 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 
-public class ServerGUI extends JFrame implements PacketInterpretor {
+import rts.networking.gui.ComboBoxFileModel;
+import rts.networking.gui.ListPlayerModel;
+
+public class ServerGUI extends JFrame {
 	private static final long serialVersionUID = -357002641827289509L;
 	
 	private boolean acceptingConnections = false;
-	private boolean gameRunning = false;
+//	private boolean gameRunning = false;
+	Map map;
 	
 	ArrayList<File> mapFiles = new ArrayList<File>(0);
-	HashSet<String> playerNames;
-	HashMap<String, Player> players;
+	HashSet<InetAddress> ips = new HashSet<InetAddress>(0);
+	HashMap<InetAddress, Player> players = new HashMap<InetAddress, Player>(0);
 	
 	DatagramPacket packetIn;
 	DatagramPacket packetOut;
 	DatagramSocket server;
 	
+	// TODO add a timer to process unfinished tasks in the task queue?
+	Timer executor = new Timer();
 	Thread sender;
 	Thread receiver;
-	Thread processor;
+	Thread interpretor;
 	
-	LinkedBlockingQueue<byte[]> inbound = new LinkedBlockingQueue<byte[]>();
-	LinkedBlockingQueue<byte[]> outbound = new LinkedBlockingQueue<byte[]>();
+	// TODO add a queue to store packets that have not finished execution?
+	Vector<DatagramPacket> packetsInUse = new Vector<DatagramPacket>();
+	LinkedBlockingQueue<DatagramPacket> inbound = new LinkedBlockingQueue<DatagramPacket>();
+	LinkedBlockingQueue<DatagramPacket> outbound = new LinkedBlockingQueue<DatagramPacket>();
 	
-	JList lstPlayers = new JList(new String[] {"Player 1", "Player 2", "Player 3"});
+//	JList lstPlayers = new JList(new String[] {"Player 1", "Player 2", "Player 3"});
+	JList lstPlayers;
 	JButton btnKick = new JButton("Kick");
 	JButton btnInfo = new JButton("Info");
 	JButton btnAccept = new JButton("Accept Connections");
@@ -62,7 +75,8 @@ public class ServerGUI extends JFrame implements PacketInterpretor {
 	JPanel pnlSouth = new JPanel();
 	JPanel pnlWest = new JPanel();
 	JPanel pnlPlayers = new JPanel();
-	JComboBox cboMaps = new JComboBox(mapFiles.toArray());
+//	JComboBox cboMaps = new JComboBox(mapFiles.toArray);
+	JComboBox cboMaps = new JComboBox();
 	JTextArea txaResults = new JTextArea();
 	JScrollPane scpPlayers = new JScrollPane(lstPlayers);
 	JScrollPane scpResults = new JScrollPane(txaResults);
@@ -95,7 +109,7 @@ public class ServerGUI extends JFrame implements PacketInterpretor {
 		pnlPlayers.add(btnKick);
 		pnlPlayers.add(btnInfo);
 		
-		lstPlayers.setSelectedIndex(0);
+//		lstPlayers.setSelectedIndex(0);
 		
 		txaResults.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 11));
 		txaResults.setTabSize(4);
@@ -107,20 +121,31 @@ public class ServerGUI extends JFrame implements PacketInterpretor {
 		
 		addActionListeners();
 		
+		cout("Checking for maps...");
+		findMapFiles();
+		setComponentStates();
+		
 		setTitle("RTS Server");
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
 		pack();
 		setVisible(true);
 
+		executor.schedule(new TimerTask() {
+			@Override
+			public void run() {
+				
+			}
+		}, 20);
+		
 		// TODO Move the packet sizes from Packet class to this class
 		receiver = new Thread(new Runnable() {
 			@Override
 			public void run() {
 				try {
 					while (acceptingConnections) {
-						packetIn = new DatagramPacket(new byte[PacketFactory.PACKET_SIZE_BYTES], PacketFactory.PACKET_SIZE_BYTES);
+						packetIn = new DatagramPacket(new byte[DataFactory.PACKET_SIZE_BYTES], DataFactory.PACKET_SIZE_BYTES);
 						server.receive(packetIn);
-						inbound.put(packetIn.getData());
+						inbound.put(packetIn);
 					}
 				}
 				catch (IOException e) {
@@ -140,10 +165,10 @@ public class ServerGUI extends JFrame implements PacketInterpretor {
 				try {
 					while (acceptingConnections) {
 						if (outbound.size() > 0) {
-							byte[] buffer = outbound.remove();
+//							DatagramPacket temp = outbound.remove();
 							// TODO add the sender address or else this will not send
-							packetOut = new DatagramPacket(buffer, buffer.length);
-							server.send(packetOut);
+//							packetOut = new DatagramPacket(temp, temp.length);
+							server.send(outbound.remove());
 						}
 					}
 				}
@@ -154,43 +179,66 @@ public class ServerGUI extends JFrame implements PacketInterpretor {
 			}
 		});
 		
-		processor = new Thread(new Runnable() {
+		interpretor = new Thread(new Runnable() {
 			@Override
 			public void run() {
 				try {
 					// TODO make boolean gameRunning
 					// TODO change to gameRunning
 					while (acceptingConnections) {
-						byte[] packet = inbound.poll();
+						DatagramPacket packet = inbound.poll();
 						
 						if (packet == null)
 							continue;
 						
-						int instruction = getInstruction(packet);
-						System.out.println(instruction);
+						// TODO Convert all byte[] to DatagramPacket...
+						int instruction = DataInterpretor.getInstruction(packet.getData());
+						
 						switch (instruction) {
-						case PacketFactory.CONNECT:
-							cout(getStringData(packet, 1, 64).trim() + " sent a packet!!");
-							break;
-						case PacketFactory.DISCONNECT:
+						case DataFactory.PACKET_CONNECT:
+//							cout(DataInterpretor.getStringData(packet.getData(), 1, 64).trim() + " sent a packet from " + packet.getAddress().toString());
+							if (players.size() != 2) {
+								// TODO change the size now
+							}
+							
+							// get map size
+							// set player size
+							// name size
+							// get player name
+							// add name to name array
+							// get ip
+							// make player
+							// add player to player array
 							
 							break;
-						case PacketFactory.WIN:
+						case DataFactory.PACKET_DISCONNECT:
+							// stop game
 							
 							break;
-						case PacketFactory.LOSE:
+						case DataFactory.PACKET_WIN:
+							// stop game
 							
 							break;
-						case PacketFactory.UPDATE_XY:
+						case DataFactory.PACKET_LOSE:
+							// stop game
 							
 							break;
-						case PacketFactory.ATTACK:
+						case DataFactory.PACKET_UPDATE_XY:
+							// get sender IP
+							// get player from map
+							// get unit id
+							// get next x
+							// get next y
+							// send new x, y to player
 							
 							break;
-						case PacketFactory.UPDATE_HP:
+						case DataFactory.PACKET_ATTACK:
 							
 							break;
-						case PacketFactory.BUILD:
+						case DataFactory.PACKET_UPDATE_HP:
+							
+							break;
+						case DataFactory.PACKET_BUILD:
 							
 							break;
 						}
@@ -202,60 +250,6 @@ public class ServerGUI extends JFrame implements PacketInterpretor {
 				}
 			}
 		});
-		
-		cout("Checking for maps...");
-		findMapFiles();
-		setComponentStates();
-	}
-	
-	public int getInstruction(byte[] packet) throws IOException {
-		ByteArrayInputStream byteIn = new ByteArrayInputStream(packet);
-		DataInputStream dataIn = new DataInputStream(byteIn);
-		
-		return dataIn.readByte();
-	}
-	
-	public int[] getIntData(byte[] packet, int offset) throws IOException {
-		ByteArrayInputStream byteIn = new ByteArrayInputStream(packet);
-		DataInputStream dataIn = new DataInputStream(byteIn);
-		dataIn.skipBytes(offset);
-		
-		int[] data = new int[dataIn.available() / (Integer.SIZE / 8)];
-		
-		for (int i = 0; i < data.length; ++i) {
-			data[i] = dataIn.readInt();
-		}
-		
-		return data;
-	}
-	
-	public float[] getFloatData(byte[] packet, int offset) throws IOException {
-		ByteArrayInputStream byteIn = new ByteArrayInputStream(packet);
-		DataInputStream dataIn = new DataInputStream(byteIn);
-		dataIn.skipBytes(offset);
-		
-		float[] data = new float[dataIn.available() / (Float.SIZE / 8)];
-		
-		for (int i = 0; i < data.length; ++i) {
-			data[i] = dataIn.readFloat();
-		}
-		
-		return data;
-	}
-	
-	public String getStringData(byte[] packet, int offset, int stringLength) throws IOException {
-		ByteArrayInputStream byteIn = new ByteArrayInputStream(packet);
-		DataInputStream dataIn = new DataInputStream(byteIn);
-		dataIn.skipBytes(offset);
-		
-		int length = Math.min(dataIn.available() / (Character.SIZE / 8), stringLength);
-		String s = "";
-		
-		for (int i = 0; i < length; ++i) {
-			s += dataIn.readChar();
-		}
-		
-		return s;
 	}
 
 	private void addActionListeners() {
@@ -288,23 +282,37 @@ public class ServerGUI extends JFrame implements PacketInterpretor {
 		btnAccept.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				// TODO Set player array size
-				acceptingConnections = true;
-				players = new HashMap<String, Player>();
-				cboMaps.setEnabled(false);
-				btnAccept.setEnabled(false);
-				btnDecline.setEnabled(true);
-				
-				receiver.start();
-				cout("Receiver thread started");
-				
-				sender.start();
-				cout("Sender thread started");
-				
-				processor.start();
-				cout("Packet processor thread started");
-				
-				System.out.println(processor.isAlive());
+				try {
+					cboMaps.setEnabled(false);
+					btnAccept.setEnabled(false);
+					btnDecline.setEnabled(true);
+					
+					// TODO need to get the real selected map
+					map = Map.createMap(mapFiles.get(0));
+					
+					acceptingConnections = true;
+					
+					players = new HashMap<InetAddress, Player>(map.getPlayerSize());
+					ips = new HashSet<InetAddress>(map.getPlayerSize());
+					
+					receiver.start();
+					cout("Packet receiver thread started");
+					
+					sender.start();
+					cout("Packet sender thread started");
+					
+					interpretor.start();
+					cout("Packet interpretor thread started");
+					
+					
+				}
+				catch (UnknownHostException e1) {
+					e1.printStackTrace();
+				}
+				catch (IOException e1) {
+					cout("IOException caught...");
+					e1.printStackTrace();
+				}
 			}
 		});
 		
@@ -340,6 +348,7 @@ public class ServerGUI extends JFrame implements PacketInterpretor {
 		}
 		else {
 			cout(mapFiles.size() + " valid map(s) found");
+			cboMaps.setSelectedIndex(0);
 			
 			try {
 				if (server == null) {
@@ -417,6 +426,8 @@ public class ServerGUI extends JFrame implements PacketInterpretor {
 		catch (IOException e) {
 			e.printStackTrace();
 		}
+		
+		cboMaps.setModel(new ComboBoxFileModel(mapFiles));
 	}
 	
 	private synchronized void cout(String s) {

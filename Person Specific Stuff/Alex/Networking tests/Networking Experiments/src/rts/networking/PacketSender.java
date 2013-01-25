@@ -2,11 +2,14 @@ package rts.networking;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
+import java.net.UnknownHostException;
 
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -32,7 +35,7 @@ public class PacketSender extends JFrame {
 	
 	JTextField tfName = new JTextField(32);
 	
-	PacketFactory factory = new PacketFactory();
+	DataFactory factory = new DataFactory();
 	
 	public PacketSender() {
 		tbpMain.addTab("Player Info", pnlInfo);
@@ -69,7 +72,12 @@ public class PacketSender extends JFrame {
 				
 				try {
 					packetData = factory.createConnectPacket(name);
-					packet = new DatagramPacket(packetData, packetData.length, InetAddress.getLocalHost(), 666);
+					packet = new DatagramPacket(packetData, packetData.length);
+					
+					FileOutputStream fos = new FileOutputStream(new File("connect.packet"));
+					fos.write(packetData);
+					fos.close();
+					
 					socket.send(packet);
 				} catch (IOException e1) {
 					e1.printStackTrace();
@@ -84,16 +92,36 @@ public class PacketSender extends JFrame {
 			}
 		});
 		
-		
+		try {
+			socket.connect(InetAddress.getLocalHost(), 666);
+		}
+		catch (UnknownHostException e1) {
+			e1.printStackTrace();
+		}
 		
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
 		setTitle("Pseudo-client");
 		pack();
+		setResizable(false);
 		setVisible(true);
 	}
 	
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 //		System.out.println(InetAddress.getLocalHost().toString());
 		new PacketSender();
+		
+//		ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
+//		DataOutputStream dataOut = new DataOutputStream(byteOut);
+//		
+//		dataOut.write("test".getBytes());
+//		
+//		byte[] results = byteOut.toByteArray();
+//		
+//		for (byte b : results) {
+//			System.out.println(b);
+//		}
+//		
+//		System.out.println();
+//		System.out.println(new String(byteOut.toByteArray()));
 	}
 }

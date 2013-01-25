@@ -1,3 +1,4 @@
+package rts.networking.unit_testing;
 import static org.junit.Assert.*;
 
 import java.io.ByteArrayOutputStream;
@@ -8,11 +9,11 @@ import java.io.IOException;
 
 import org.junit.Test;
 
-import rts.networking.PacketFactory;
+import rts.networking.DataFactory;
 
 public class PacketTesting {
-	PacketFactory factory = new PacketFactory();
-	String name = "ALEX";
+	DataFactory factory = new DataFactory();
+	String name = "Test";
 	byte[] packet;
 	byte[] controlPacket;
 	
@@ -30,7 +31,7 @@ public class PacketTesting {
 			packet = factory.createConnectPacket(name);
 			
 			dataOut.writeByte(0);
-			dataOut.writeChars(String.format("%-" + 64 + "S", name));
+			dataOut.write(String.format("%-" + 64 + "S", name).getBytes());
 			
 			controlPacket = out.toByteArray();
 			

@@ -5,33 +5,34 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.security.InvalidParameterException;
 
-public class PacketFactory {
+public class DataFactory {
+	// TODO Decide whether or not packet size consts are needed
 	private static final int INSTRUCTION_DATA_SIZE = 1;						// 1 byte
 	private static final int STRING_DATA_LENGTH = 64 * Character.SIZE / 8;	// 64 characters
 	private static final int NUMERICAL_DATA_SIZE = 4 * Integer.SIZE / 8;	// 4 integers/floats
 	public static final int PACKET_SIZE_BYTES = INSTRUCTION_DATA_SIZE + STRING_DATA_LENGTH + NUMERICAL_DATA_SIZE;
 	
-	public static final byte CONNECT = 0;
-	public static final byte DISCONNECT = 1;
-	public static final byte WIN = 2;
-	public static final byte LOSE = 3;
-	public static final byte MOVE = 4;		// 2 floats
-	public static final byte UPDATE_XY = 5;	// 2 floats
-	public static final byte ATTACK = 6;	// 1 int
-	public static final byte UPDATE_HP = 7;	// 1 int
-	public static final byte BUILD = 8;		// 1 int
+	public static final byte PACKET_CONNECT = 0;
+	public static final byte PACKET_DISCONNECT = 1;
+	public static final byte PACKET_WIN = 2;
+	public static final byte PACKET_LOSE = 3;
+	public static final byte PACKET_MOVE = 4;		// 2 floats
+	public static final byte PACKET_UPDATE_XY = 5;	// 2 floats
+	public static final byte PACKET_ATTACK = 6;		// 1 int
+	public static final byte PACKET_UPDATE_HP = 7;	// 1 int
+	public static final byte PACKET_BUILD = 8;		// 1 int
 	
-	public static final int MARINE = 0;			// 1 int
-	public static final int MINER = 1;			// 1 int
-	public static final int COMMAND_CENTER = 2;	// 1 int
-	public static final int FACTORY = 3;		// 1 int
-	public static final int GENERATOR = 4;		// 1 int
+	public static final int UNIT_MARINE = 0;			// 1 int
+	public static final int UNIT_MINER = 1;				// 1 int
+	public static final int UNIT_COMMAND_CENTER = 2;	// 1 int
+	public static final int UNIT_FACTORY = 3;			// 1 int
+	public static final int UNIT_GENERATOR = 4;			// 1 int
 	
 	private ByteArrayOutputStream bytesOut = new ByteArrayOutputStream();
 	private DataOutputStream dataOut = new DataOutputStream(bytesOut);
 	
 	// TODO Move packet size to ServerGUI
-	public PacketFactory() {}
+	public DataFactory() {}
 	
 	private void flushOutput() throws IOException {
 		bytesOut.flush();
@@ -44,7 +45,7 @@ public class PacketFactory {
 			throw new InvalidParameterException("String data too long");
 		}
 		else {
-			dataOut.writeChars(String.format("%-" + STRING_DATA_LENGTH / (Character.SIZE / 8) + "S", data));
+			dataOut.writeChars(String.format("%-" + STRING_DATA_LENGTH / (Character.SIZE / 8) + "s", data));
 		}
 	}
 	
@@ -75,7 +76,7 @@ public class PacketFactory {
 	}
 	
 	public byte[] createConnectPacket(String username) throws IOException {
-		dataOut.writeByte(CONNECT);
+		dataOut.writeByte(PACKET_CONNECT);
 		addStringToPacket(username);
 		
 		byte[] temp = bytesOut.toByteArray();
@@ -86,7 +87,7 @@ public class PacketFactory {
 	}
 	
 	public byte[] createDisconnectPacket(String username) throws IOException {
-		dataOut.writeByte(DISCONNECT);
+		dataOut.writeByte(PACKET_DISCONNECT);
 		addStringToPacket(username);
 		
 		byte[] temp = bytesOut.toByteArray();
@@ -97,7 +98,7 @@ public class PacketFactory {
 	}
 	
 	public byte[] createWinningPacket(String username) throws IOException {
-		dataOut.writeByte(WIN);
+		dataOut.writeByte(PACKET_WIN);
 		addStringToPacket(username);
 		byte[] temp = bytesOut.toByteArray();
 		
@@ -107,7 +108,7 @@ public class PacketFactory {
 	}
 	
 	public byte[] createLosingPacket(String username) throws IOException {
-		dataOut.writeByte(LOSE);
+		dataOut.writeByte(PACKET_LOSE);
 		addStringToPacket(username);
 		byte[] temp = bytesOut.toByteArray();
 		
@@ -117,7 +118,7 @@ public class PacketFactory {
 	}
 	
 	public byte[] createMovePacket(String username, int unitID, float x, float y) throws IOException {
-		dataOut.writeByte(MOVE);
+		dataOut.writeByte(PACKET_MOVE);
 		addStringToPacket(username);
 		addIntToPacket(unitID);
 		addFloatToPacket(x, y);
@@ -130,7 +131,7 @@ public class PacketFactory {
 	}
 	
 	public byte[] createUpdateXYPacket(String username, int unitID, float newX, float newY) throws IOException {
-		dataOut.writeByte(UPDATE_XY);
+		dataOut.writeByte(PACKET_UPDATE_XY);
 		addStringToPacket(username);
 		addIntToPacket(unitID);
 		addFloatToPacket(newX, newY);
@@ -143,7 +144,7 @@ public class PacketFactory {
 	}
 	
 	public byte[] createAttackPacket(String username, int unitID, int targetID) throws IOException {
-		dataOut.writeByte(ATTACK);
+		dataOut.writeByte(PACKET_ATTACK);
 		addStringToPacket(username);
 		addIntToPacket(unitID, targetID);
 		
@@ -155,7 +156,7 @@ public class PacketFactory {
 	}
 	
 	public byte[] createUpdateHPPacket(String username, int unitID, int targetID, int newHP) throws IOException {
-		dataOut.writeByte(UPDATE_HP);
+		dataOut.writeByte(PACKET_UPDATE_HP);
 		addStringToPacket(username);
 		addIntToPacket(unitID, targetID, newHP);
 		
@@ -167,7 +168,7 @@ public class PacketFactory {
 	}
 	
 	public byte[] createBuildPacket(String username, int unitType, int x, int y) throws IOException {
-		dataOut.writeByte(BUILD);
+		dataOut.writeByte(PACKET_BUILD);
 		addStringToPacket(username);
 		addIntToPacket(unitType, x, y);
 		
