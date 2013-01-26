@@ -29,14 +29,16 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 
+import rts.elements.Unit;
 import rts.networking.gui.ComboBoxFileModel;
 
 public class ServerGUI extends JFrame {
 	private static final long serialVersionUID = -357002641827289509L;
 	
-	private boolean waitinfForConnections = false;
+	private boolean waitingForConnections = false;
 	private boolean gameRunning = false;
 	Map map;
+	DataFactory factory = new DataFactory();
 	
 	ArrayList<File> mapFiles = new ArrayList<File>(0);
 	ConcurrentHashMap<InetAddress, Player> players = new ConcurrentHashMap<InetAddress, Player>(0);
@@ -50,7 +52,7 @@ public class ServerGUI extends JFrame {
 	Thread receiver;
 	Thread interpretor;
 
-	Vector<DatagramPacket> packetsInUse = new Vector<DatagramPacket>();
+	Vector<Unit> unitsInAction = new Vector<Unit>();
 	LinkedBlockingQueue<DatagramPacket> inbound = new LinkedBlockingQueue<DatagramPacket>();
 	LinkedBlockingQueue<DatagramPacket> outbound = new LinkedBlockingQueue<DatagramPacket>();
 	
@@ -136,7 +138,7 @@ public class ServerGUI extends JFrame {
 			@Override
 			public void run() {
 				try {
-					while (waitinfForConnections) {
+					while (waitingForConnections) {
 						packetIn = new DatagramPacket(new byte[DataFactory.PACKET_SIZE_BYTES], DataFactory.PACKET_SIZE_BYTES);
 						server.receive(packetIn);
 						inbound.put(packetIn);
@@ -157,7 +159,7 @@ public class ServerGUI extends JFrame {
 			@Override
 			public void run() {
 				try {
-					while (waitinfForConnections) {
+					while (waitingForConnections) {
 						if (outbound.size() > 0) {
 //							DatagramPacket temp = outbound.remove();
 							// TODO add the sender address or else this will not send
@@ -177,7 +179,7 @@ public class ServerGUI extends JFrame {
 			@Override
 			public void run() {
 				try {
-					while (waitinfForConnections) {
+					while (waitingForConnections) {
 						DatagramPacket source = inbound.poll();
 						
 						if (source != null) {
@@ -196,6 +198,20 @@ public class ServerGUI extends JFrame {
 						
 						if (source != null) {
 							int instruction = DataInterpretor.getInstruction(source.getData());
+							int unitID;
+							
+							if (instruction != DataFactory.PACKET_DISCONNECT) {
+								unitID = DataInterpretor.getInstruction(source.getData());
+								
+								// checking whether or not the unit exists
+								for (Player p: players.values()) {
+									if (!p.unitExists(unitID)) {
+										byte[] data = factory.createRemoveUnitPacket(unitID);
+										outbound.add(new DatagramPacket(data, data.length, source.getAddress(), 666));
+										continue;
+									}
+								}
+							}
 							
 							switch (instruction) {
 							case DataFactory.PACKET_DISCONNECT:
@@ -216,12 +232,10 @@ public class ServerGUI extends JFrame {
 							case DataFactory.PACKET_UPDATE_XY:
 								updateXY(source);
 								break;
-							case DataFactory.PACKET_ADD_UNIT:
-								
-								break;
-							case DataFactory.PACKET_REMOVE_UNIT:
-								
-								break;
+//							case DataFactory.PACKET_ADD_UNIT:
+//								break;
+//							case DataFactory.PACKET_REMOVE_UNIT:
+//								break;
 							}
 						}
 					}
@@ -279,7 +293,7 @@ public class ServerGUI extends JFrame {
 		InetAddress source = packet.getAddress();
 		int targetID = DataInterpretor.getIntData(packet.getData(), 1);
 		
-		packetsInUse.add(packet);
+//		unitsInAction.add(packet);
 	}
 	
 	private void build(DatagramPacket packet) {
@@ -336,7 +350,7 @@ public class ServerGUI extends JFrame {
 					// TODO need to get the real selected map
 					map = Map.createMap(mapFiles.get(0));
 					
-					waitinfForConnections = true;
+					waitingForConnections = true;
 					
 					players = new ConcurrentHashMap<InetAddress, Player>(map.getSpawnSites());
 					cout(String.valueOf(map.getSpawnSites()));
@@ -365,7 +379,7 @@ public class ServerGUI extends JFrame {
 		btnDecline.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				waitinfForConnections = false;
+				waitingForConnections = false;
 				cboMaps.setEnabled(true);
 				btnDecline.setEnabled(false);
 				btnAccept.setEnabled(true);

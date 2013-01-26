@@ -22,6 +22,10 @@ public class UnitList {
 		units.put(currentID, o);
 	}
 	
+	public boolean exists(int id) {
+		return usedIDs.exists(id);
+	}
+	
 	public void remove(int id) {
 		units.remove(id);
 		usedIDs.remove(id);

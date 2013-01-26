@@ -1,19 +1,23 @@
 package rts.elements;
 
+import rts.networking.Player;
+
 public abstract class ControllableObject {
+	protected Player owner;
 	protected int id;
 	protected float x;
 	protected float y;
 	protected int hp;
-	protected boolean underAttack = false;
-	protected boolean destroyed = false;
+	
+	public static final int DESTROYED = 0;
+	
+	protected int state;
 	protected long timeDestroyed;
 	
 	public void takeDamage(int damage) {
 		hp -= damage;
 		
 		if (hp <= 0) {
-			destroyed = true;
 			timeDestroyed = System.currentTimeMillis();
 		}
 	}
@@ -22,7 +26,7 @@ public abstract class ControllableObject {
 		return timeDestroyed;
 	}
 	
-	public double getX() {
+	public float getX() {
 		return x;
 	}
 	
@@ -40,14 +44,6 @@ public abstract class ControllableObject {
 	
 	public int getHP() {
 		return hp;
-	}
-	
-	public boolean isUnderAttack() {
-		return underAttack;
-	}
-	
-	public boolean isDestroyed() {
-		return destroyed;
 	}
 	
 	public int getID() {

@@ -1,6 +1,7 @@
 package rts.elements.units;
 
 import rts.elements.Unit;
+import rts.networking.Player;
 
 public class Miner extends Unit {
 	private static final int SPEED = 2;
@@ -8,7 +9,7 @@ public class Miner extends Unit {
 	private static final float RANGE = 0.2f;
 	private static final int DAMAGE = 5;
 	
-	public Miner(int id, float x, float y) {
-		super(id, x, y, SPEED, HP, RANGE, DAMAGE);
+	public Miner(Player owner, int id, float x, float y) {
+		super(owner, id, x, y, SPEED, HP, RANGE, DAMAGE);
 	}
 }

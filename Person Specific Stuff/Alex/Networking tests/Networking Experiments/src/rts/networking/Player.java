@@ -14,6 +14,7 @@ public class Player {
 	private String name;
 	private InetAddress playerAddress;
 	private UnitList units;
+	private int power;
 	
 	public Player(InetAddress remote, String playerName) {
 		playerAddress = remote;
@@ -43,5 +44,21 @@ public class Player {
 	
 	public String toString() {
 		return name;
+	}
+
+	public int getPower() {
+		return power;
+	}
+
+	public boolean unitExists(int unitID) {
+		return units.exists(unitID);
+	}
+	
+	public void increasePower() {
+		
+	}
+	
+	public void decreasePower() {
+		
 	}
 }
