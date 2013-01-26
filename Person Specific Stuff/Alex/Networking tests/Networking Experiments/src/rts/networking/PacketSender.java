@@ -2,8 +2,6 @@ package rts.networking;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -20,7 +18,7 @@ import javax.swing.JTextField;
 
 public class PacketSender extends JFrame {
 	private static final long serialVersionUID = 4704574043125486387L;
-	String name = "";
+	String name = "Alex";
 	
 	DatagramSocket socket;
 	DatagramPacket packet;
@@ -72,12 +70,8 @@ public class PacketSender extends JFrame {
 				
 				try {
 					packetData = factory.createConnectPacket(name);
-					packet = new DatagramPacket(packetData, packetData.length);
-					
-					FileOutputStream fos = new FileOutputStream(new File("connect.packet"));
-					fos.write(packetData);
-					fos.close();
-					
+//					packet = new DatagramPacket(packetData, packetData.length, InetAddress.getByAddress(new byte[] {(byte) 192,(byte) 168,56,1}), 666);
+					packet = new DatagramPacket(packetData, packetData.length);					
 					socket.send(packet);
 				} catch (IOException e1) {
 					e1.printStackTrace();

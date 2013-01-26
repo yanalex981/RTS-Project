@@ -13,15 +13,15 @@ public class Map {
 	public static final byte MINERAL = 2;
 	public static final byte SPAWN = 3;
 	
-	private int playerSize;
+	private int spawnSites;
 	private int l;
 	private int w;
 	
 	private byte grid[][] = new byte[l][w];
 	
-	private Map(byte[][] grid, int playerSize) {
+	private Map(byte[][] grid, int spawnSites) {
 		this.grid = grid;
-		this.playerSize = playerSize;
+		this.spawnSites = spawnSites;
 		l = grid[0].length;
 		w = grid.length;
 	}
@@ -34,8 +34,8 @@ public class Map {
 		return w;
 	}
 	
-	public int getPlayerSize() {
-		return playerSize;
+	public int getSpawnSites() {
+		return spawnSites;
 	}
 	
 	public int checkPosition(int x, int y) {
@@ -46,7 +46,10 @@ public class Map {
 	public static boolean validateMapFile(File in, boolean checkSpawn) throws IOException {
 		DataInputStream data = new DataInputStream(new FileInputStream(in));
 		
-		int w, h, s, sInGrid = 0;
+		int w = data.readInt();
+		int h = data.readInt();
+		int spawn = data.readByte();
+		int actualSpawns = 0;
 		
 		// minimum length check
 		if (in.length() < 9) {
@@ -54,25 +57,21 @@ public class Map {
 			return false;
 		}
 		
-		w = data.readInt();
-		h = data.readInt();
-		
 		// dimension check
 		if (w * h != data.available()) {
+			// TODO fails here?
 			data.close();
 			return false;
 		}
 		
 		if (checkSpawn) {
-			s = data.readInt();
-			
 			while (data.available() > 0) {
 				if (data.readByte() == Map.SPAWN) {
-					++sInGrid;
+					++actualSpawns;
 				}
 			}
 			
-			if (sInGrid != s) {
+			if (actualSpawns != spawn) {
 				data.close();
 				return false;
 			}
@@ -100,12 +99,13 @@ public class Map {
 		return grid;
 	}
 	
-	public static void writeMap(byte[][] grid, File out) throws IOException {
+	public static void writeMap(byte[][] grid, File out, int spawns) throws IOException {
 		out.createNewFile();
 		DataOutputStream fileOut = new DataOutputStream(new FileOutputStream(out));
 		
 		fileOut.writeInt(grid[0].length);
 		fileOut.writeInt(grid.length);
+		fileOut.writeByte(spawns);
 		
 		for (int i = 0; i < grid.length; ++i) {
 			fileOut.write(grid[i]);
@@ -119,7 +119,7 @@ public class Map {
 		
 		int w = fileIn.readInt();
 		int h = fileIn.readInt();
-		int playerSize = fileIn.readInt();
+		int spawnSites = fileIn.readByte();
 		byte[][] file = new byte[h][w];
 		
 		for (int i = 0; i < h; ++i) {
@@ -128,7 +128,7 @@ public class Map {
 		
 		fileIn.close();
 		
-		Map map = new Map(file, playerSize);
+		Map map = new Map(file, spawnSites);
 		
 		return map;
 	}

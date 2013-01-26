@@ -2,8 +2,8 @@ package rts.elements;
 
 public abstract class ControllableObject {
 	protected int id;
-	protected double x;
-	protected double y;
+	protected float x;
+	protected float y;
 	protected int hp;
 	protected boolean underAttack = false;
 	protected boolean destroyed = false;
@@ -26,15 +26,15 @@ public abstract class ControllableObject {
 		return x;
 	}
 	
-	public void setX(double x) {
+	public void setX(float x) {
 		this.x = x;
 	}
 	
-	public double getY() {
+	public float getY() {
 		return y;
 	}
 	
-	public void setY(double y) {
+	public void setY(float y) {
 		this.y = y;
 	}
 	

@@ -4,7 +4,7 @@ public class Building extends ControllableObject {
 	private int l;
 	private int w;
 	
-	public Building(int id, double x, double y, int l, int w, int hp) {
+	public Building(int id, float x, float y, int l, int w, int hp) {
 		this.id = id;
 		this.x = x;
 		this.y = y;

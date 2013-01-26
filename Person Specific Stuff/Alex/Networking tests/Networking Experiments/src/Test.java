@@ -1,10 +1,15 @@
 
-public class Test {
-	public static void main(String[] args) {
-		method(5,2,4,6,3);
+public class Test extends Thread {
+	public Test() {}
+	
+	public void run() {
+		for (int i = 0; i < 1000; ++i) {
+			System.out.println(i);
+		}
 	}
 	
-	public static void method(int... x) {
-		System.out.println(x[2]);
+	public static void main(String[] args) {
+		Test test = new Test();
+		test.run();
 	}
 }

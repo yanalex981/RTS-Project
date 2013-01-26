@@ -13,11 +13,10 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.Vector;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import javax.swing.BoxLayout;
@@ -35,13 +34,12 @@ import rts.networking.gui.ComboBoxFileModel;
 public class ServerGUI extends JFrame {
 	private static final long serialVersionUID = -357002641827289509L;
 	
-	private boolean acceptingConnections = false;
-//	private boolean gameRunning = false;
+	private boolean waitinfForConnections = false;
+	private boolean gameRunning = false;
 	Map map;
 	
 	ArrayList<File> mapFiles = new ArrayList<File>(0);
-//	HashSet<InetAddress> ips = new HashSet<InetAddress>(0);
-	HashMap<InetAddress, Player> players = new HashMap<InetAddress, Player>(0);
+	ConcurrentHashMap<InetAddress, Player> players = new ConcurrentHashMap<InetAddress, Player>(0);
 	
 	DatagramPacket packetIn;
 	DatagramPacket packetOut;
@@ -138,7 +136,7 @@ public class ServerGUI extends JFrame {
 			@Override
 			public void run() {
 				try {
-					while (acceptingConnections) {
+					while (waitinfForConnections) {
 						packetIn = new DatagramPacket(new byte[DataFactory.PACKET_SIZE_BYTES], DataFactory.PACKET_SIZE_BYTES);
 						server.receive(packetIn);
 						inbound.put(packetIn);
@@ -159,7 +157,7 @@ public class ServerGUI extends JFrame {
 			@Override
 			public void run() {
 				try {
-					while (acceptingConnections) {
+					while (waitinfForConnections) {
 						if (outbound.size() > 0) {
 //							DatagramPacket temp = outbound.remove();
 							// TODO add the sender address or else this will not send
@@ -179,57 +177,52 @@ public class ServerGUI extends JFrame {
 			@Override
 			public void run() {
 				try {
-					// TODO make boolean gameRunning
-					// TODO change to gameRunning
-					while (acceptingConnections) {
-						DatagramPacket packet = inbound.poll();
-						int instruction = -1;
+					while (waitinfForConnections) {
+						DatagramPacket source = inbound.poll();
 						
-						if (packet == null)
-							continue;
-						
-						// TODO Convert all byte[] to DatagramPacket...
-						instruction = DataInterpretor.getInstruction(packet.getData());
-						
-						switch (instruction) {
-						case DataFactory.PACKET_CONNECT:
-							if (players.size() != 2) {
-								// TODO change the size now
+						if (source != null) {
+							int instruction = DataInterpretor.getInstruction(source.getData());
+							
+							if (instruction == DataFactory.PACKET_CONNECT && !players.contains(source.getAddress())) {
+//							if (instruction == DataFactory.PACKET_CONNECT) {
+//								cout(DataInterpretor.getStringData(source.getData(), 1, 64).trim() + " is trying to connect");
+								connect(source);
 							}
+						}
+					}
+					
+					while (gameRunning) {
+						DatagramPacket source = inbound.poll();
+						
+						if (source != null) {
+							int instruction = DataInterpretor.getInstruction(source.getData());
 							
-							break;
-						case DataFactory.PACKET_DISCONNECT:
-							// stop game
-							
-							break;
-						case DataFactory.PACKET_WIN:
-							// stop game
-							
-							break;
-						case DataFactory.PACKET_LOSE:
-							// stop game
-							
-							break;
-						case DataFactory.PACKET_UPDATE_XY:
-							// get sender IP
-							// get player from map
-							// get unit id
-							// get next x
-							// get next y
-							// send new x, y to player
-							
-							break;
-						case DataFactory.PACKET_ATTACK:
-							
-							break;
-						case DataFactory.PACKET_UPDATE_HP:
-							
-							break;
-						case DataFactory.PACKET_BUILD:
-							
-							break;
-						default:
-							continue;
+							switch (instruction) {
+							case DataFactory.PACKET_DISCONNECT:
+								disconnect(source);
+								break;
+							case DataFactory.PACKET_ATTACK:
+								attack(source);
+								break;
+							case DataFactory.PACKET_BUILD:
+								build(source);
+								break;
+							case DataFactory.PACKET_MOVE:
+								move(source);
+								break;
+							case DataFactory.PACKET_UPDATE_HP:
+								updateHP(source);
+								break;
+							case DataFactory.PACKET_UPDATE_XY:
+								updateXY(source);
+								break;
+							case DataFactory.PACKET_ADD_UNIT:
+								
+								break;
+							case DataFactory.PACKET_REMOVE_UNIT:
+								
+								break;
+							}
 						}
 					}
 				}
@@ -248,28 +241,21 @@ public class ServerGUI extends JFrame {
 		// [X] make player
 		// [X] add player to player array
 		
-		InetAddress ip = packet.getAddress();
-		
-		if (!players.containsKey(ip) && players.size() < map.getPlayerSize()) {
+		if (players.size() < map.getSpawnSites()) {
+			InetAddress ip = packet.getAddress();
+			
 			String name = DataInterpretor.getStringData(packet.getData(), 1, 64);
 			Player p = new Player(ip, name);
 			players.put(ip, p);
-		}
-		
-		if (players.size() == map.getPlayerSize()) {
-			// TODO code for enable game start
+			
+			if (players.size() == map.getSpawnSites()) {
+				btnStart.setEnabled(true);
+			}
 		}
 	}
 	
 	private void disconnect(DatagramPacket packet) {
-		InetAddress source = packet.getAddress();
 		
-		if (players.containsKey(source)) {
-//			ips.remove(ip);
-//			players.remove(ip);
-			// TODO send disconnect packet?
-			
-		}
 	}
 	
 	private void win(DatagramPacket packet) {
@@ -283,18 +269,25 @@ public class ServerGUI extends JFrame {
 	private void move(DatagramPacket packet) throws IOException {
 		InetAddress source = packet.getAddress();
 		int unitID = DataInterpretor.getIntData(packet.getData(), 1);
-		int x;
-		int y;
+		int x = DataInterpretor.getIntData(packet.getData(), 5);
+		int y = DataInterpretor.getIntData(packet.getData(), 9);
 		
-		
+		// TODO use Bobby's findPath method
 	}
 	
-	private void attack(DatagramPacket packet) {
+	private void attack(DatagramPacket packet) throws IOException {
+		InetAddress source = packet.getAddress();
+		int targetID = DataInterpretor.getIntData(packet.getData(), 1);
 		
+		packetsInUse.add(packet);
 	}
 	
 	private void build(DatagramPacket packet) {
+		InetAddress source = packet.getAddress();
 		
+		if (players.containsKey(source)) {
+			
+		}
 	}
 	
 	private void updateHP(DatagramPacket packet) {
@@ -343,9 +336,10 @@ public class ServerGUI extends JFrame {
 					// TODO need to get the real selected map
 					map = Map.createMap(mapFiles.get(0));
 					
-					acceptingConnections = true;
+					waitinfForConnections = true;
 					
-					players = new HashMap<InetAddress, Player>(map.getPlayerSize());
+					players = new ConcurrentHashMap<InetAddress, Player>(map.getSpawnSites());
+					cout(String.valueOf(map.getSpawnSites()));
 					
 					receiver.start();
 					cout("Packet receiver thread started");
@@ -371,7 +365,7 @@ public class ServerGUI extends JFrame {
 		btnDecline.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				acceptingConnections = false;
+				waitinfForConnections = false;
 				cboMaps.setEnabled(true);
 				btnDecline.setEnabled(false);
 				btnAccept.setEnabled(true);
@@ -426,7 +420,7 @@ public class ServerGUI extends JFrame {
 		
 		if (mapDir.exists() && mapDir.isDirectory()) {
 			if (mapDir.listFiles().length > 1) {
-				getMapList();
+				filterMapList();
 				
 				if (mapFiles.size() < 1) {
 					cout("Error: No usable map files!");
@@ -441,7 +435,7 @@ public class ServerGUI extends JFrame {
 		}
 	}
 	
-	private void getMapList() {
+	private void filterMapList() {
 		File mapDir = new File("Maps");
 		mapFiles = new ArrayList<File>(Arrays.asList(mapDir.listFiles()));
 		
@@ -454,17 +448,17 @@ public class ServerGUI extends JFrame {
 		}
 		
 		// filter out .map that does not have .geom file pairs
-		for (int i = 0; i < mapFiles.size(); ++i) {
-			String name = mapFiles.get(i).getName();
-			name = name.substring(0, name.lastIndexOf('.'));
-			
-			File test = new File(mapDir.getName() + "//" + name + ".geom");
-			
-			if (!test.exists()) {
-				mapFiles.remove(i);
-				--i;
-			}
-		}
+//		for (int i = 0; i < mapFiles.size(); ++i) {
+//			String name = mapFiles.get(i).getName();
+//			name = name.substring(0, name.lastIndexOf('.'));
+//			
+//			File test = new File(mapDir.getName() + "//" + name + ".geom");
+//			
+//			if (!test.exists()) {
+//				mapFiles.remove(i);
+//				--i;
+//			}
+//		}
 		
 		// filter out invalid maps
 		try {

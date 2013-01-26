@@ -5,10 +5,10 @@ import rts.elements.Unit;
 public class Marine extends Unit {
 	private static final int SPEED = 2;
 	private static final int HP = 50;
-	private static final double RANGE = 0.2;
+	private static final float RANGE = 0.2f;
 	private static final int DAMAGE = 5;
 	
-	public Marine(int id, double x, double y) {
+	public Marine(int id, float x, float y) {
 		super(id, x, y, SPEED, HP, RANGE, DAMAGE);
 	}
 }

@@ -9,7 +9,6 @@ import java.awt.event.MouseMotionListener;
 import java.io.File;
 import java.io.IOException;
 
-import javax.swing.JFrame;
 import javax.swing.JPanel;
 
 import rts.networking.Map;
@@ -17,11 +16,11 @@ import rts.networking.Map;
 public class GridPanel extends JPanel implements MouseListener, MouseMotionListener {
 	private static final long serialVersionUID = -2739997346291402006L;
 	
-	private int w = 100;
-	private int h = 100;
+	private int w = 5;
+	private int h = 5;
 
 	private byte drawMode = Map.MINERAL;
-
+	
 	private byte[][] grid = new byte[h][w];
 	
 	public GridPanel() {
@@ -120,17 +119,19 @@ public class GridPanel extends JPanel implements MouseListener, MouseMotionListe
 	}
 	
 	public void saveGridFile(File file) throws IOException {
-		Map.writeMap(grid, file);
-	}
-	
-	public static void main(String[] args) {
-		JFrame frame = new JFrame();
-		GridPanel test = new GridPanel();
+		int spawns = 0;
 		
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frame.add(test);
-		frame.pack();
-		frame.setVisible(true);
+		for (int i = 0; i < grid.length; ++i) {
+			for (int j = 0; j < grid[i].length; ++j) {
+				if (grid[i][j] == Map.SPAWN) {
+					++spawns;
+				}
+			}
+		}
+		
+		System.out.println(spawns);
+		
+		Map.writeMap(grid, file, spawns);
 	}
 
 	@Override
@@ -146,6 +147,7 @@ public class GridPanel extends JPanel implements MouseListener, MouseMotionListe
 		
 		if (x < w && x >= 0 && y < h && y >= 0) {
 			grid[x][y] = drawMode;
+			
 		}
 		
 		repaint();

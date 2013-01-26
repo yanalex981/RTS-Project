@@ -13,7 +13,7 @@ public class UnitList {
 	public UnitList() {}
 	
 	public void add(ControllableObject o) {
-		while (!usedIDs.exists(currentID)) {
+		while (usedIDs.exists(currentID)) {
 			++currentID; // Integer overflow will not occur in Java. It loops back to -2 billion
 		}
 		

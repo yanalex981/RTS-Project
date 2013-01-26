@@ -16,17 +16,19 @@ public class DataFactory {
 	public static final byte PACKET_DISCONNECT = 1;
 	public static final byte PACKET_WIN = 2;
 	public static final byte PACKET_LOSE = 3;
-	public static final byte PACKET_MOVE = 4;		// 2 floats
-	public static final byte PACKET_UPDATE_XY = 5;	// 2 floats
-	public static final byte PACKET_ATTACK = 6;		// 1 int
-	public static final byte PACKET_UPDATE_HP = 7;	// 1 int
-	public static final byte PACKET_BUILD = 8;		// 1 int
+	public static final byte PACKET_MOVE = 4;
+	public static final byte PACKET_UPDATE_XY = 5;
+	public static final byte PACKET_ATTACK = 6;
+	public static final byte PACKET_UPDATE_HP = 7;
+	public static final byte PACKET_BUILD = 8;
+	public static final byte PACKET_ADD_UNIT = 9;
+	public static final byte PACKET_REMOVE_UNIT = 10;
 	
-	public static final int UNIT_MARINE = 0;			// 1 int
-	public static final int UNIT_MINER = 1;				// 1 int
-	public static final int UNIT_COMMAND_CENTER = 2;	// 1 int
-	public static final int UNIT_FACTORY = 3;			// 1 int
-	public static final int UNIT_GENERATOR = 4;			// 1 int
+	public static final int UNIT_MARINE = 0;
+	public static final int UNIT_MINER = 1;
+	public static final int UNIT_COMMAND_CENTER = 2;
+	public static final int UNIT_FACTORY = 3;
+	public static final int UNIT_GENERATOR = 4;
 	
 	private ByteArrayOutputStream bytesOut = new ByteArrayOutputStream();
 	private DataOutputStream dataOut = new DataOutputStream(bytesOut);
@@ -167,6 +169,31 @@ public class DataFactory {
 		dataOut.writeByte(PACKET_BUILD);
 		addIntToPacket(unitType);
 		addFloatToPacket(x, y);
+		
+		byte[] temp = bytesOut.toByteArray();
+		
+		flushOutput();
+		
+		return temp;
+	}
+	
+	// add unit
+	public byte[] createAddUnitPacket(int unitType, int unitID, int hp, float x, float y) throws IOException {
+		dataOut.writeByte(PACKET_ADD_UNIT);
+		addIntToPacket(unitType, unitID, hp);
+		addFloatToPacket(x, y);
+		
+		byte[] temp = bytesOut.toByteArray();
+		
+		flushOutput();
+		
+		return temp;
+	}
+	
+	// remove unit
+	public byte[] createRemoveUnitPacket(int unitID) throws IOException {
+		dataOut.write(PACKET_REMOVE_UNIT);
+		addIntToPacket(unitID);
 		
 		byte[] temp = bytesOut.toByteArray();
 		
