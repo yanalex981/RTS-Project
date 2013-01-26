@@ -1,14 +1,12 @@
 #version 110
 
-vec3 reflect3f(vec3 incident, vec3 normal);
-
 varying vec3 varyingColour;
 
-varying vec3 vertexPosition;
+vec3 reflect3f(vec3 incident, vec3 normal);
 
 void main()
 {
-	vertexPosition = (gl_ModelViewMatrix * gl_Vertex).xyz;
+	vec3 vertexPosition = (gl_ModelViewMatrix * gl_Vertex).xyz;
 
 	vec3 lightDirection = normalize(gl_LightSource[0].position.xyz - vertexPosition);
 
@@ -30,7 +28,7 @@ void main()
 		varyingColour.rgb += vec3(fspecular, fspecular, fspecular);
 	}
 	
-	gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
+	gl_FragColor = vec4(varyingColour, 1);
 }
 
 vec3 reflect3f(vec3 incident, vec3 normal)

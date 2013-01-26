@@ -1,3 +1,9 @@
+/**
+ * @author Ian Roukema	
+ * @since November 10 2012
+ * Description: Defines a face with four verticies.
+ */
+
 import org.lwjgl.util.vector.Vector4f;
 
 public class QuadFace 

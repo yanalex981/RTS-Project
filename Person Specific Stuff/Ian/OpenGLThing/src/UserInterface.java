@@ -1,4 +1,10 @@
-import org.lwjgl.Sys;
+/**
+ * @author Ian Roukema	
+ * @since November 10 2012
+ * Description: executes responses to user input.
+ */
+
+import java.util.ArrayList;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
@@ -8,48 +14,166 @@ import org.lwjgl.util.vector.Vector4f;
 
 public class UserInterface
 {
-	private boolean keyUP, keyDOWN, keyLEFT, keyRIGHT, keySPACE, keyLSHIFT;
+	private boolean keyUP, keyDOWN, keyLEFT, keyRIGHT, keySPACE, keyLSHIFT, keyLCTRL;
 	private boolean keyW, keyA, keyS, keyD;
 	private boolean keyEsc, keyF2;
-	private boolean key1, key2, key3, key4, key5, key6, key7, key8, key9, key0;
-	private int totalDelta;
+	private boolean[] key = new boolean[10];
+	private int totalDelta, waitDelta = 100;
 
 	public UserInterface()
 	{
-
 	}
 
-	public void hotKeyUpdate(Unit selection, int delta)
+	/**
+	 * Input Check for hotkeys.
+	 * 
+	 * @param selection : The unit that the user has selected.
+	 * @param delta : The change in time.
+	 */
+	public void hotKeyUpdate(ArrayList<ControllableObject> selectionList, int delta)
 	{
-		key1 = Keyboard.isKeyDown(Keyboard.KEY_1);
-		key2 = Keyboard.isKeyDown(Keyboard.KEY_2);
-		key3 = Keyboard.isKeyDown(Keyboard.KEY_3);
-		key4 = Keyboard.isKeyDown(Keyboard.KEY_4);
-		key5 = Keyboard.isKeyDown(Keyboard.KEY_5);
-		key6 = Keyboard.isKeyDown(Keyboard.KEY_6);
-		key7 = Keyboard.isKeyDown(Keyboard.KEY_7);
-		key8 = Keyboard.isKeyDown(Keyboard.KEY_8);
-		key9 = Keyboard.isKeyDown(Keyboard.KEY_9);
-		key0 = Keyboard.isKeyDown(Keyboard.KEY_0);
-		totalDelta += delta;
+		key[1] = Keyboard.isKeyDown(Keyboard.KEY_1);
+		key[2] = Keyboard.isKeyDown(Keyboard.KEY_2);
+		key[3] = Keyboard.isKeyDown(Keyboard.KEY_3);
+		key[4] = Keyboard.isKeyDown(Keyboard.KEY_4);
+		key[5] = Keyboard.isKeyDown(Keyboard.KEY_5);
+		key[6] = Keyboard.isKeyDown(Keyboard.KEY_6);
+		key[7] = Keyboard.isKeyDown(Keyboard.KEY_7);
+		key[8] = Keyboard.isKeyDown(Keyboard.KEY_8);
+		key[9] = Keyboard.isKeyDown(Keyboard.KEY_9);
+		key[0] = Keyboard.isKeyDown(Keyboard.KEY_0);
 
-		if (totalDelta > 100)
+		if (totalDelta > waitDelta)
+			buildKeyUpdate(selectionList);
+	}
+
+	/**
+	 * Update for keys dedicated to building.
+	 * 
+	 * @param selection : The unit that the player has selected.
+	 */
+	public void buildKeyUpdate(ArrayList<ControllableObject> selectionList)
+	{
+		for (int i = 0; i < selectionList.size(); i++)
 		{
-			buildKeyUpdate(selection);
+			if (key[1])
+			{
+				selectionList.get(i).keyOneCommand();
+				totalDelta = 0;
+			}
+			if (key[2])
+			{
+				selectionList.get(i).keyTwoCommand();
+				totalDelta = 0;
+			}
 		}
 	}
 
-	public void buildKeyUpdate(Unit selection)
+	public void updateSelection(int delta, ArrayList<ControllableObject> selectionList, Player owner, Matrix4f rMatrix, Vector4f cameraPosition)
 	{
-		if (selection != null)
+		keyLSHIFT = Keyboard.isKeyDown(Keyboard.KEY_LSHIFT);
+		keyLCTRL = Keyboard.isKeyDown(Keyboard.KEY_LCONTROL);
+
+		if (getTotalDelta() > getWaitDelta())
 		{
-			if (key1)
-				selection.keyOneCommand();
-			if (key2)
-				selection.keyTwoCommand();
+			for (int i = 0; i < selectionList.size(); i++)
+			{
+				selectionList.get(i).setShininess(10);
+			}
+
+			if (Mouse.isButtonDown(0))
+			{
+				Vector4f mVector = Resource.rayPick(rMatrix);
+				owner.setMVectorPosition(cameraPosition);
+				ControllableObject selection = Resource.select((ArrayList) owner.getUnitList(), mVector, cameraPosition);
+				if (selection == null)
+				{
+					selection = Resource.select((ArrayList) owner.getBuildingList(), mVector, cameraPosition);
+				}
+				owner.setMVector(mVector);
+
+				// unit selection code
+				if (selection != null)
+				{
+					if (selection.getClass() == Building.class || !keyLSHIFT)
+					{
+						selectionList.clear();
+					}
+					selectionList.add(selection);
+				}
+				else
+				{
+					selectionList.clear();
+				}
+
+				//setTotalDelta(0);
+			}
+
+			// control group code
+			for (int i = 0; i < key.length; i++)
+			{
+				if (key[i])
+				{
+					if (keyLCTRL)
+					{
+						owner.setControlGroup(selectionList, i);
+						System.out.println("set group #" + i);
+					}
+					else if (keyLSHIFT)
+					{
+						owner.addToControlGroup(selectionList, i);
+						System.out.println("added to group #" + i);
+					}
+					else
+					{
+						selectionList.clear();
+						selectionList.addAll(owner.getControlGroup(i));
+						System.out.println("retreived group #" + i);
+					}
+
+					break;
+				}
+			}
+
+			if (selectionList != null)
+			{
+				for (int i = 0; i < selectionList.size(); i++)
+					selectionList.get(i).setShininess(1);
+			}
 		}
 	}
 
+	public void updateUnitMovement(ArrayList<ControllableObject> selectionList, Player owner, Vector4f cameraPosition, Vector3f cursorPosition, Matrix4f rMatrix)
+	{
+		if (Mouse.isButtonDown(1) && getTotalDelta() > getWaitDelta())
+		{
+			Vector4f mVector = Resource.rayPick(rMatrix);
+			cursorPosition = Resource.selectLevelPlane(owner.level, mVector, cameraPosition, owner.levelPosition);
+			System.out.println("Cursor Position: " + cursorPosition);
+			System.out.println("CameraPosition: " + cameraPosition);
+			Vector3f.sub(cursorPosition, new Vector3f(cameraPosition.x, cameraPosition.y, cameraPosition.z), cursorPosition);
+			System.out.println("Cursor Position: " + cursorPosition);
+			// cursorPosition = new Vector3f(Math.round(cursorPosition.z),
+			// Math.round(cursorPosition.y), Math.round(cursorPosition.z));
+			if (owner.getCursorPosition().x >= 0 && owner.getCursorPosition().x >= 0)
+			{
+				for (int i = 0; i < selectionList.size(); i++)
+				{
+					((Unit) selectionList.get(i)).setPath((owner.map.findPath(selectionList.get(i).getPosition().x, selectionList.get(i).getPosition().z, cursorPosition.x, cursorPosition.z, ((Unit) selectionList.get(i)).getCollisionRadius())));
+				}
+			}
+			setTotalDelta(0);
+		}
+	}
+
+	/**
+	 * Updates input for movement keys.
+	 * 
+	 * @param tMatrix : The translation matrix.
+	 * @param rMatrix : The rotation matrix.
+	 * @param rotation : The rotation values specified for each axis.
+	 * @param delta : The change in time.
+	 */
 	public void movementUpdate(Matrix4f tMatrix, Matrix4f rMatrix, Vector3f rotation, float delta)
 	{
 		keyW = Keyboard.isKeyDown(Keyboard.KEY_W);
@@ -64,15 +188,23 @@ public class UserInterface
 		keyLSHIFT = Keyboard.isKeyDown(Keyboard.KEY_LSHIFT);
 		keyEsc = Keyboard.isKeyDown(Keyboard.KEY_ESCAPE);
 
-		keyboardMovementUpdate(tMatrix, rotation, delta);
+		if (totalDelta > waitDelta)
+			keyboardMovementUpdate(tMatrix, rotation, delta);
 
 		mouseMovementUpdate(rMatrix, tMatrix, rotation);
 	}
 
+	/**
+	 * Updates keyboard based movement.
+	 * 
+	 * @param tMatrix : The translation Matrix.
+	 * @param rotation : The axis specific rotation values.
+	 * @param delta : The change in time.
+	 */
 	private void keyboardMovementUpdate(Matrix4f tMatrix, Vector3f rotation, float delta)
 	{
-		//Vector4f tVector = new Vector4f(0, 0, 0, 1);
-		//Matrix4f rMatrix = new Matrix4f();
+		// Vector4f tVector = new Vector4f(0, 0, 0, 1);
+		// Matrix4f rMatrix = new Matrix4f();
 
 		if (keyA)
 		{
@@ -92,25 +224,25 @@ public class UserInterface
 		}
 		if (keyLSHIFT)
 		{
-			tMatrix.translate(new Vector3f(0, 0.01f * delta, 0));
+			// tMatrix.translate(new Vector3f(0, 0.01f * delta, 0));
 		}
 		if (keySPACE)
 		{
 			tMatrix.translate(new Vector3f(0, -0.01f * delta, 0));
 		}
-		if (keyUP /* || (Mouse.getY() > Display.getHeight() - 50 && !Mouse.isGrabbed()) */)
+		if ((keyLEFT || (Mouse.getX() < 50 && !Mouse.isGrabbed())))
 		{
 			tMatrix.translate(new Vector3f((float) (delta * 0.01 * 0.707), 0, (float) (delta * 0.01 * 0.707)));
 		}
-		if (keyDOWN /* || (Mouse.getY() < 50 && !Mouse.isGrabbed()) */)
+		if ((keyRIGHT || (Mouse.getX() > Display.getWidth() - 50 && !Mouse.isGrabbed())))
 		{
 			tMatrix.translate(new Vector3f((float) (delta * -0.01 * 0.707), 0, (float) (delta * -0.01 * 0.707)));
 		}
-		if (keyRIGHT /* || (Mouse.getX() > Display.getWidth() - 50 && !Mouse.isGrabbed()) */)
+		if ((keyDOWN || (Mouse.getY() < 50 && !Mouse.isGrabbed())))
 		{
 			tMatrix.translate(new Vector3f((float) (delta * 0.01 * 0.707), 0, (float) (delta * -0.01 * 0.707)));
 		}
-		if (keyLEFT /* || (Mouse.getX() < 50 && !Mouse.isGrabbed()) */)
+		if ((keyUP || (Mouse.getY() > Display.getHeight() - 50 && !Mouse.isGrabbed())))
 		{
 			tMatrix.translate(new Vector3f((float) (delta * -0.01 * 0.707), 0, (float) (delta * 0.01 * 0.707)));
 		}
@@ -120,16 +252,31 @@ public class UserInterface
 		}
 	}
 
+	/**
+	 * Updates mouse based movement updates.
+	 * 
+	 * @param rMatrix : The rotation matrix.
+	 * @param tMatrix : The translation matrix.
+	 * @param rotation : THe axis specific rotation angles.
+	 */
 	private void mouseMovementUpdate(Matrix4f rMatrix, Matrix4f tMatrix, Vector3f rotation)
 	{
-		//System.out.println(rotation);
-		//System.out.println(rMatrix);
-		if (totalDelta > 100)
+		// System.out.println(rotation);
+		// System.out.println(rMatrix);
+		if (totalDelta > waitDelta * 2)
 		{
 			if (Mouse.isButtonDown(2) && !Mouse.isGrabbed())
+			{
+				System.out.println("Mouse Down");
 				Mouse.setGrabbed(true);
+				totalDelta = 0;
+			}
 			else if (Mouse.isButtonDown(2) && Mouse.isGrabbed())
+			{
+				System.out.println("Mouse Up");
 				Mouse.setGrabbed(false);
+				totalDelta = 0;
+			}
 		}
 
 		if (Mouse.isGrabbed())
@@ -145,7 +292,8 @@ public class UserInterface
 			{
 				rotation.y += mouseDX;
 			}
-			//rMatrix.rotate((float)Math.toRadians(-mouseDX), new Vector3f(0, 1, 0));
+			// rMatrix.rotate((float)Math.toRadians(-mouseDX), new Vector3f(0,
+			// 1, 0));
 
 			if (rotation.x - mouseDY > 85)
 				rotation.x = 85;
@@ -155,7 +303,8 @@ public class UserInterface
 			{
 				rotation.x -= mouseDY;
 			}
-			//rMatrix.rotate((float)Math.toRadians(mouseDY), new Vector3f(1, 0, 0));
+			// rMatrix.rotate((float)Math.toRadians(mouseDY), new Vector3f(1, 0,
+			// 0));
 		}
 
 		rMatrix.setIdentity();
@@ -183,5 +332,10 @@ public class UserInterface
 	public void addTotalDelta(int delta)
 	{
 		this.totalDelta += delta;
+	}
+
+	public int getWaitDelta()
+	{
+		return waitDelta;
 	}
 }

@@ -1,3 +1,9 @@
+/**
+ * @author Ian Roukema	
+ * @since November 10 2012
+ * Description: Defines a face with three verticies.
+ */
+
 import org.lwjgl.util.vector.Vector3f;
 
 public class TriangleFace

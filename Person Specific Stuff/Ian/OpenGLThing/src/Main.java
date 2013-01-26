@@ -1,15 +1,17 @@
+/**
+ * @author Ian Roukema	
+ * @since November 10 2012
+ * Description:
+ */
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Scanner;
 
 import org.lwjgl.Sys;
-import org.lwjgl.input.Keyboard;
-import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
-import org.lwjgl.opengl.DisplayMode;
 import org.lwjgl.util.glu.GLU;
-import org.lwjgl.util.glu.Project;
 import org.lwjgl.util.vector.Matrix4f;
 import org.lwjgl.util.vector.Vector3f;
 import org.lwjgl.util.vector.Vector4f;
@@ -24,10 +26,11 @@ public class Main
 	long lastFrame, lastFPS;
 	int FPS;
 	ArrayList<Unit> unitList = new ArrayList<Unit>();
+	ArrayList<Player> playerList = new ArrayList<Player>();
 	Vector4f cameraPosition = new Vector4f(0, 0, 0, 1);
 	Vector4f globalLook = new Vector4f(0, 0, -1, 1);
 	Vector4f cameraUp = new Vector4f(0, 1, 0, 1);
-	Vector3f cameraRotation = new Vector3f(0, 0, 0);
+	Vector3f cameraRotation = new Vector3f(20, 45, 0);
 	Vector3f lightPosition = new Vector3f(0, 0, 0);
 	Vector4f mVector = new Vector4f(10, 0, 0, 1);
 	Matrix4f textureMatrix = new Matrix4f();
@@ -38,6 +41,7 @@ public class Main
 	Unit selection = null;
 	Matrix4f tMatrix = new Matrix4f();
 	Matrix4f rMatrix = new Matrix4f();
+	Map map;
 	static Main m;
 
 	int shaderProgram;
@@ -55,45 +59,49 @@ public class Main
 		glDeleteShader(fragmentShader);
 		Display.destroy();
 		System.exit(0);
-
 	}
 
 	public void initializeGL()
 	{
 		try
 		{
-			// Display.setDisplayMode(Display.getDesktopDisplayMode());
-			Display.setDisplayMode(new DisplayMode(800, 600));
-			// Display.setFullscreen(true);
+			Display.setDisplayMode(Display.getDesktopDisplayMode());
+			Display.setFullscreen(true);
 			//Display.setVSyncEnabled(true);
 			System.out.println("Display: " + Display.getDisplayMode().getWidth() + "x" + Display.getDisplayMode().getHeight() + "x" + Display.getDisplayMode().getBitsPerPixel() + " " + Display.getDisplayMode().getFrequency() + "Hz");
 			Display.create();
+			System.out.println("Display Working");
 		} catch (Exception e)
 		{
 			e.printStackTrace();
 			System.exit(0);
 		}
-		System.out.println("Display Working");
+
+		map = new Map(100, 100);
 
 		ModelReference.loadModels();
 
-		unitList.add(new Unit(ModelReference.level, null, "Level", m));
-		unitList.add(new Unit(ModelReference.rocketTank, ModelReference.rocketTankAnimation, "Rocket Tank", m));
-		unitList.add(new Building(ModelReference.barracks, null, "Barracks", m));
-		unitList.add(new Unit(ModelReference.reactor, null, "Reactor", m));
+		tMatrix.translate(new Vector3f(-cameraPosition.x, -cameraPosition.y, -cameraPosition.z));
+		rMatrix.rotate(cameraRotation.x, new Vector3f(1, 0, 0));
+		rMatrix.rotate(cameraRotation.y, new Vector3f(0, 1, 0));
+		rMatrix.rotate(cameraRotation.z, new Vector3f(0, 0, 1));
 
-		unitList.get(0).translate(0, -10, -20);
-		unitList.get(1).translate(-2, -9, -20);
-		unitList.get(2).translate(5, -10, -13);
-		unitList.get(3).translate(-5, -10, -26);
-		// unitList.get(3).rotate(45, 0, 0);
-		// unitList.get(4).translate(-4, -10, -10);
-		unitList.get(0).setColour(1, 0, 0);
-		unitList.get(1).setColour(1, 0, 0);
-		unitList.get(2).setColour(1, 1, 0);
-		unitList.get(3).setColour(0, 1, 0);
-		// unitList.get(4).setColour(0, 0, 1);
-		unitList.get(0).setState(Unit.SETUP);
+		playerList.add(new Player("Squisy", new Vector3f(1, 0, 0), map, ModelReference.level, new Vector3f(50, -10, 50)));
+		playerList.get(0).addUnit(new Marine(new Vector3f(48, -10, 24), .05F, 1f, 5, playerList.get(0), true));
+		playerList.get(0).addUnit(new Marine(new Vector3f(46, -10, 19), .05F, 1f, 5, playerList.get(0), true));
+		playerList.get(0).addBuilding(new CommandCenter(new Vector3f(57, -10, 33), playerList.get(0), true));
+		playerList.get(0).getUnit(0).setColour(1, 0, 0);
+		playerList.get(0).getUnit(1).setColour(1, 1, 0);
+		playerList.get(0).getBuilding(0).setColour(0, 1, 0);
+
+		this.selection = playerList.get(0).getUnit(0);
+
+		for (int i = 0; i < playerList.get(0).getUnitListSize(); i++)
+		{
+			playerList.get(0).map.addUnit(playerList.get(0).getUnit(i));
+		}
+
+		//map.getUnitsInRadius(unitList.get(0), 100);
 
 		glViewport(0, 0, Display.getWidth(), Display.getHeight());
 		glMatrixMode(GL_PROJECTION);
@@ -103,6 +111,7 @@ public class Main
 		glLoadIdentity();
 
 		initializeShaders();
+		glUseProgram(shaderProgram);
 		initializeLighting();
 
 		glClearColor(0.0f, 0.0f, 0.0f, 0.5f);
@@ -113,6 +122,16 @@ public class Main
 
 		getDelta();
 		lastFPS = getTime();
+
+		Node[][] nodes = map.getNodes();
+		for (int y = 0; y < nodes.length; y++)
+		{
+			for (int x = 0; x < nodes.length; x++)
+			{
+				System.out.print(nodes[y][x].getMaxUnitRadius() + "\t");
+			}
+			System.out.println("");
+		}
 	}
 
 	public void update()
@@ -121,58 +140,19 @@ public class Main
 		while (!Display.isCloseRequested())
 		{
 			delta = getDelta();
-			for (int i = 0; i < unitList.size(); i++)
-			{
-				unitList.get(i).update();
-			}
+
+			playerList.get(0).update(delta, getTime());
+
 			updateFPS();
-			UI.addTotalDelta(delta);
-			updateInput(delta);
-			UI.movementUpdate(tMatrix, rMatrix, cameraRotation, delta);
-			UI.hotKeyUpdate(selection, delta);
-			if (UI.getTotalDelta() > 100)
-				UI.setTotalDelta(0);
+
 			cameraPosition = new Vector4f(0, 0, 0, 1);
 			Matrix4f.transform(tMatrix, cameraPosition, cameraPosition);
 			globalLook = new Vector4f(0, 0, -1, 1);
 			Matrix4f.transform(rMatrix, globalLook, globalLook);
 			cameraUp = new Vector4f(0, 1, 0, 1);
 			Matrix4f.transform(rMatrix, cameraUp, cameraUp);
-			renderGL();
 			Display.update();
-			// Display.sync(30);
-		}
-	}
-
-	public void updateInput(int delta)
-	{
-		if (UI.getTotalDelta() > 100)
-		{
-			if (Mouse.isButtonDown(0))
-			{
-				if (selection != null)
-				{
-					selection.getModel().setShininess(10);
-				}
-				System.out.println(cameraRotation);
-				Vector4f mVector = Resource.mouseVector(cameraRotation, cameraPosition, rMatrix);
-				selection = Resource.select(unitList, unitList.get(0), mVector, cameraPosition);
-				this.mVector = mVector;
-				pos = cameraPosition;
-				if (selection != null)
-				{
-					System.out.println("We've got something!!!");
-					System.out.println(selection.getName());
-					selection.getModel().setShininess(1);
-				}
-			}
-			if (Mouse.isButtonDown(1))
-			{
-				Vector4f mVector = Resource.mouseVector(cameraRotation, cameraPosition, rMatrix);
-				cursorPosition = Resource.selectLevelPlane(unitList.get(0), mVector, cameraPosition);
-				Vector3f.sub(cursorPosition, new Vector3f(cameraPosition.x, cameraPosition.y, cameraPosition.z), cursorPosition);
-				//cursorPosition = new Vector3f(Math.round(cursorPosition.z), Math.round(cursorPosition.y), Math.round(cursorPosition.z));
-			}
+			Display.sync(30);
 		}
 	}
 
@@ -295,43 +275,6 @@ public class Main
 			lastFPS += 1000;
 		}
 		FPS++;
-	}
-
-	public void renderGL()
-	{
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glLoadIdentity();
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glLoadIdentity();
-
-		//Project.gluLookAt(cameraPosition.x, cameraPosition.y, cameraPosition.z, cameraPosition.x + globalLook.x, cameraPosition.y + globalLook.y, cameraPosition.z + globalLook.z, 0, 1, 0);
-
-		long time = getTime();
-		//System.out.println(v);
-
-		glRotatef(cameraRotation.x, 1, 0, 0);
-		glRotatef(cameraRotation.y, 0, 1, 0);
-		glRotatef(cameraRotation.z, 0, 0, 1);
-		glTranslatef(cameraPosition.x, cameraPosition.y, cameraPosition.z);
-
-		glBegin(GL_LINES);
-		{
-			glVertex3f(-pos.x, -pos.y - 0.1f, -pos.z);
-			glVertex3f(-pos.x + 100 * mVector.x, -pos.y + 100 * mVector.y, -pos.z + 100 * mVector.z);
-			//glVertex3f(0, 0, 0);
-			//glVertex3f(mVector.x * 100, mVector.y * 100, mVector.z * 100);
-		}
-		glEnd();
-
-		glUseProgram(shaderProgram);
-		for (int i = 0; i < unitList.size(); i++)
-		{
-			unitList.get(i).draw(time);
-		}
-		glUseProgram(0);
-
 	}
 
 	public static void main(String[] args)

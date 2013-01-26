@@ -11,10 +11,10 @@ public class Model
 	public List<Vector3f> normals = new ArrayList<Vector3f>();
 	public List<TriangleFace> triFaces = new ArrayList<TriangleFace>();
 	public List<QuadFace> quadFaces = new ArrayList<QuadFace>();
+	public List<Mesh> meshList = new ArrayList<Mesh>();
 	public List<Vector3f> maskVerticies = new ArrayList<Vector3f>();
 	public List<Vector3f> maskNormals = new ArrayList<Vector3f>();
 	public List<QuadFace> maskFaces = new ArrayList<QuadFace>();
-	private int shininess = 10;
 	int list;
 
 	float xCollisionRadii, yCollisionRadii, zCollisionRadii;
@@ -24,11 +24,6 @@ public class Model
 	public Model()
 	{
 
-	}
-	
-	public void setShininess(int shininess)
-	{
-		this.shininess = shininess;
 	}
 
 	public void initializeDisplayList()
@@ -187,75 +182,25 @@ public class Model
 		// ")   max:(" + xMax + ", " + yMax + ", " + zMax + ")");
 	}
 
-	public void draw(Vector3f position, Vector3f rotation, Vector3f colour)
+	public void draw(Vector3f position, Vector3f rotation, Vector3f colour, float shininess)
 	{
 		glPushMatrix();
 		glTranslatef(position.x, position.y, position.z);
 		glRotatef(rotation.x, 1, 0, 0);
 		glRotatef(rotation.y, 0, 1, 0);
 		glRotatef(rotation.z, 0, 0, 1);
-		glColor3f(colour.x, colour.y, colour.z);
-		glMaterialf(GL_FRONT, GL_SHININESS, shininess);
+		
+		for(int i = 0; i < meshList.size(); i++)
+		{
+			meshList.get(i).draw(colour, shininess);
+		}
+		
+		//glColor3f(colour.x, colour.y, colour.z);
+		//glMaterialf(GL_FRONT, GL_SHININESS, shininess);
 
-		glCallList(list);
-		//render();
+		//glCallList(list);
 		//renderMask();
 		glPopMatrix();
-	}
-
-	private void render()
-	{
-		glBegin(GL_TRIANGLES);
-		{
-			// glColor3f(1.0f, 1.0f, 0.0f);
-			for (int i = 0; i < triFaces.size(); i++)
-			{
-				// glColor3f(1.0f, 0.0f, 0.0f);
-				Vector3f n1 = normals.get((int) (triFaces.get(i).normal.x - 1));
-				glNormal3f(n1.x, n1.y, n1.z);
-				Vector3f v1 = verticies.get((int) (triFaces.get(i).vertex.x - 1));
-				glVertex3f(v1.x, v1.y, v1.z);
-				// glColor3f(0.0f, 1.0f, 0.0f);
-				Vector3f n2 = normals.get((int) (triFaces.get(i).normal.y - 1));
-				glNormal3f(n2.x, n2.y, n2.z);
-				Vector3f v2 = verticies.get((int) (triFaces.get(i).vertex.y - 1));
-				glVertex3f(v2.x, v2.y, v2.z);
-				// glColor3f(0.0f, 0.0f, 1.0f);
-				Vector3f n3 = normals.get((int) (triFaces.get(i).normal.z - 1));
-				glNormal3f(n3.x, n3.y, n3.z);
-				Vector3f v3 = verticies.get((int) (triFaces.get(i).vertex.z - 1));
-				glVertex3f(v3.x, v3.y, v3.z);
-			}
-		}
-		glEnd();
-
-		glBegin(GL_QUADS);
-		{
-			// glColor3f(1.0f, 0.0f, 0.0f);
-			for (int i = 0; i < quadFaces.size(); i++)
-			{
-				// glColor3f(1.0f, 0.0f, 0.0f);
-				Vector3f n1 = normals.get((int) (quadFaces.get(i).normal.x - 1));
-				glNormal3f(n1.x, n1.y, n1.z);
-				Vector3f v1 = verticies.get((int) (quadFaces.get(i).vertex.x - 1));
-				glVertex3f(v1.x, v1.y, v1.z);
-				// glColor3f(0.0f, 1.0f, 0.0f);
-				Vector3f n2 = normals.get((int) (quadFaces.get(i).normal.y - 1));
-				glNormal3f(n2.x, n2.y, n2.z);
-				Vector3f v2 = verticies.get((int) (quadFaces.get(i).vertex.y - 1));
-				glVertex3f(v2.x, v2.y, v2.z);
-				// glColor3f(0.0f, 0.0f, 1.0f);
-				Vector3f n3 = normals.get((int) (quadFaces.get(i).normal.z - 1));
-				glNormal3f(n3.x, n3.y, n3.z);
-				Vector3f v3 = verticies.get((int) (quadFaces.get(i).vertex.z - 1));
-				glVertex3f(v3.x, v3.y, v3.z);
-				Vector3f n4 = normals.get((int) (quadFaces.get(i).normal.w - 1));
-				glNormal3f(n4.x, n4.y, n4.z);
-				Vector3f v4 = verticies.get((int) (quadFaces.get(i).vertex.w - 1));
-				glVertex3f(v4.x, v4.y, v4.z);
-			}
-		}
-		glEnd();
 	}
 
 	private void renderMask()

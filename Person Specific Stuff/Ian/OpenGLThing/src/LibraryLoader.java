@@ -1,8 +1,20 @@
+/**
+ * @author Ian Roukema	
+ * @since November 10 2012
+ * Description: Loads native libraries based on operating system.
+ */
+
 import java.lang.reflect.Field;
 import java.util.Arrays;
 
 public class LibraryLoader 
 {
+	
+	/**
+	 * Finds out the operating system of the system and loads the appropriate natives.
+	 * 
+	 * @throws Exception: Exception pertaining to a failure to load files.
+	 */
 	public static void loadNativeLibraries()throws Exception
 	{
 		
@@ -27,6 +39,12 @@ public class LibraryLoader
 		}
 	}
 	
+	/**
+	 * Adds a library to the path based on the given string.
+	 * 
+	 * @param s: The string that identifies what library path to load.
+	 * @throws Exception: Exception pertaining to failure to find files.
+	 */
 	private static void addLibraryPath(String s)throws Exception
 	{
 		final Field usr_paths_field = ClassLoader.class.getDeclaredField("usr_paths");

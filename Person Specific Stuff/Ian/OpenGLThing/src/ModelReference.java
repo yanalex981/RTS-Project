@@ -25,7 +25,8 @@ public class ModelReference
 			{
 				rocketTankAnimation.addFrame(Resource.loadModel("Vehicle Animation\\Vehicle_" + format.format(i) + ".obj"));
 			}
-			commandCenter = Resource.loadModel("Base.obj");
+			commandCenter = Resource.loadModel("Base " +
+					"Game Optimization.obj");
 			level = Resource.loadModel("Level.obj");
 			barracks = Resource.loadModel("Barracks.obj");
 			die = Resource.loadModel("Die.obj");
