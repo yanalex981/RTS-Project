@@ -3,6 +3,11 @@ package rts.elements.units;
 import rts.elements.Unit;
 import rts.networking.Player;
 
+/**
+ * THe worker unit of the game. Gathers resources
+ * 
+ * @author Alex Yan
+ */
 public class Miner extends Unit {
 	private static final int SPEED = 2;
 	private static final int HP = 50;

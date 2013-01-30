@@ -1,6 +1,12 @@
 package rts.networking.collections;
 
-// seeking [?]
+/**
+ * Resizable linked list that stores integers
+ * as unit IDs. Only stores unique integers
+ * so that units won't share the same ID
+ * 
+ * @author Alex
+ */
 public class SortedList {
 	private Node root;
 	private Node end;
@@ -28,7 +34,18 @@ public class SortedList {
 		}
 	}
 	
+	/**
+	 * iterative method to add an ID to the list
+	 * 
+	 * @param n
+	 */
 	public void add(int n) {
+		/*
+		 * this is iterative because I wanted to see
+		 * how much faster it is compared to recursive.
+		 * Not much different, but this one is slightly
+		 * faster
+		 */
 		if (size == 0) {
 			root = new Node(n);
 			end = root;
@@ -74,6 +91,10 @@ public class SortedList {
 		}
 	}
 	
+	/**
+	 * Returns all integers in this array as a string
+	 * Used for Eclipse's debugging display
+	 */
 	@Override
 	public String toString() {
 		String str = "";
@@ -87,6 +108,11 @@ public class SortedList {
 		return str.trim();
 	}
 	
+	/**
+	 * Removes a unit ID from the list
+	 * 
+	 * @param n id to remove
+	 */
 	public void remove(int n) {
 		if (size > 0) {
 			if (root.value == n) {
@@ -111,6 +137,12 @@ public class SortedList {
 		}
 	}
 	
+	/**
+	 * checks whether or not an ID exists
+	 * 
+	 * @param n	id
+	 * @return	true if id exists, false if otherwise
+	 */
 	public boolean exists(int n) {
 		if (size > 0) {
 			Node temp = root;
@@ -131,14 +163,27 @@ public class SortedList {
 		return false;
 	}
 	
+	/**
+	 * returns the largest ID
+	 * 
+	 * @return	largest ID that exists
+	 */
 	public int largest() {
 		return end.value;
 	}
 	
+	/**
+	 * returns the size of the list
+	 * 
+	 * @return	return size of array
+	 */
 	public int size() {
 		return size;
 	}
 
+	/**
+	 * Prints contents of the list to the system console
+	 */
 	public void printContents() {
 		Node temp = root;
 		

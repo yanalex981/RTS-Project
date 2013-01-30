@@ -13,6 +13,11 @@ import javax.swing.JPanel;
 
 import rts.networking.Map;
 
+/**
+ * Displays bytes[][] as a grid, and allows for editing
+ * 
+ * @author Alex
+ */
 public class GridPanel extends JPanel implements MouseListener, MouseMotionListener {
 	private static final long serialVersionUID = -2739997346291402006L;
 	
@@ -54,14 +59,17 @@ public class GridPanel extends JPanel implements MouseListener, MouseMotionListe
 				switch (grid[i][j]) {
 				
 				case Map.BLOCKED:
+					// paint black squares if tile is blocked from walking
 					g.setColor(Color.BLACK);
 					g.fillRect(i * (getWidth() / w), j * (getHeight() / h), getWidth() / w, getHeight() / h);
 					break;
 				case Map.MINERAL:
+					// paint blue square if block is resource
 					g.setColor(Color.BLUE);
 					g.fillRect(i * (getWidth() / w), j * (getHeight() / h), getWidth() / w, getHeight() / h);
 					break;
 				case Map.SPAWN:
+					// paint green square if block is spawn
 					g.setColor(Color.GREEN);
 					g.fillRect(i * (getWidth() / w), j * (getHeight() / h), getWidth() / w, getHeight() / h);
 				}
@@ -147,7 +155,6 @@ public class GridPanel extends JPanel implements MouseListener, MouseMotionListe
 		
 		if (x < w && x >= 0 && y < h && y >= 0) {
 			grid[x][y] = drawMode;
-			
 		}
 		
 		repaint();

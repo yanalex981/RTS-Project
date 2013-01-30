@@ -4,6 +4,12 @@ import java.util.HashMap;
 
 import rts.elements.ControllableObject;
 
+/**
+ * Stores units of a player
+ * Units are retrieved by ID
+ * 
+ * @author Alex
+ */
 public class UnitList {
 	int currentID = 0;
 	SortedList usedIDs = new SortedList();
@@ -29,6 +35,10 @@ public class UnitList {
 	public void remove(int id) {
 		units.remove(id);
 		usedIDs.remove(id);
+	}
+	
+	public ControllableObject get(int unitID) {
+		return units.get(unitID);
 	}
 	
 	public int size() {

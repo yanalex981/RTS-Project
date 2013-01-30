@@ -6,19 +6,60 @@ import java.util.ArrayList;
 import rts.networking.Player;
 
 public class Unit extends ControllableObject {
+	/**
+	 * radius that the unit will occupy
+	 */
 	private float radius;
+	
+	/**
+	 * the radius of this unit's attack range
+	 */
 	private float attackRange;
+	
+	/**
+	 * the damage this unit will do
+	 */
 	private int damage;
+	
+	/**
+	 * how fast this unit can move
+	 */
 	private float speed;
 
+	/**
+	 * Idle state
+	 */
 	public static final int STATE_IDLE = 1;
+	
+	/**
+	 * Moving state
+	 */
 	public static final int STATE_MOVING = 2;
+	
+	/**
+	 * Attacking state
+	 */
 	public static final int STATE_ATTACKING = 3;
+	
+	/**
+	 * Collecting state
+	 */
 	public static final int STATE_COLLECTING = 4;
+	
+	/**
+	 * Unloading resources state
+	 */
 	public static final int STATE_UNLOADING = 5;
 	
+	/**
+	 * The path this unit will follow when it moves to a new point
+	 */
 	private ArrayList<Point2D> path;
-	ControllableObject target;
+	
+	/**
+	 * The the object this unit is trying to attack
+	 */
+	private ControllableObject target;
 	
 	public Unit(Player owner, int id, float x, float y, int speed, int hp, float attackRange, int damage) {
 		this.owner = owner;

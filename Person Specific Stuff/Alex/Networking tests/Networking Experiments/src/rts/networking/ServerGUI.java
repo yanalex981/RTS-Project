@@ -10,12 +10,10 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -29,15 +27,18 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 
-import rts.elements.Unit;
 import rts.networking.gui.ComboBoxFileModel;
 
+/**
+ * GUI server console
+ * 
+ * @author Alex
+ */
 public class ServerGUI extends JFrame {
 	private static final long serialVersionUID = -357002641827289509L;
 	
 	private boolean waitingForConnections = false;
 	private boolean gameRunning = false;
-	Map map;
 	DataFactory factory = new DataFactory();
 	
 	ArrayList<File> mapFiles = new ArrayList<File>(0);
@@ -47,12 +48,11 @@ public class ServerGUI extends JFrame {
 	DatagramPacket packetOut;
 	DatagramSocket server;
 	
-	Timer executor = new Timer();
-	Thread sender;
-	Thread receiver;
-	Thread interpretor;
+	Timer sender = new Timer();
+	Runnable receiver;
+	Runnable interpretor;
 
-	Vector<Unit> unitsInAction = new Vector<Unit>();
+//	Vector<Unit> unitsInAction = new Vector<Unit>();
 	LinkedBlockingQueue<DatagramPacket> inbound = new LinkedBlockingQueue<DatagramPacket>();
 	LinkedBlockingQueue<DatagramPacket> outbound = new LinkedBlockingQueue<DatagramPacket>();
 	
@@ -126,15 +126,7 @@ public class ServerGUI extends JFrame {
 	}
 	
 	private void initializeThreads() {
-		executor.schedule(new TimerTask() {
-			@Override
-			public void run() {
-				
-			}
-		}, 20);
-		
-		// TODO Move the packet sizes from Packet class to this class
-		receiver = new Thread(new Runnable() {
+		receiver = new Runnable() {
 			@Override
 			public void run() {
 				try {
@@ -153,27 +145,32 @@ public class ServerGUI extends JFrame {
 					e.printStackTrace();
 				}
 			}
-		});
+		};
 		
-		sender = new Thread(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					while (waitingForConnections) {
-						if (outbound.size() > 0) {
-//							DatagramPacket temp = outbound.remove();
-							// TODO add the sender address or else this will not send
-//							packetOut = new DatagramPacket(temp, temp.length);
-							server.send(outbound.remove());
-						}
-					}
-				}
-				catch (IOException e) {
-					cout("IOException caught. You might want to figure out what happened...");
-					e.printStackTrace();
-				}
-			}
-		});
+		/*
+		 * sender thread is may not be needed anymore because we'll send updating packets every 200ms instead.
+		 * Timers and TimerTasks are great for that.
+		 */
+
+//		sender = new Thread(new Runnable() {
+//			@Override
+//			public void run() {
+//				try {
+//					while (waitingForConnections) {
+//						if (outbound.size() > 0) {
+////							DatagramPacket temp = outbound.remove();
+//							// TODO add the sender address or else this will not send
+////							packetOut = new DatagramPacket(temp, temp.length);
+//							server.send(outbound.remove());
+//						}
+//					}
+//				}
+//				catch (IOException e) {
+//					cout("IOException caught. You might want to figure out what happened...");
+//					e.printStackTrace();
+//				}
+//			}
+//		});
 		
 		interpretor = new Thread(new Runnable() {
 			@Override
@@ -213,18 +210,17 @@ public class ServerGUI extends JFrame {
 								}
 							}
 							
+							/*
+							 * reactions after parsing the packets have not finished
+							 * because specific functions for units and buildings
+							 * have not been implemented
+							 */
 							switch (instruction) {
+							case DataFactory.PACKET_START_GAME:
+								// start up the graphical client
+								break;
 							case DataFactory.PACKET_DISCONNECT:
 								disconnect(source);
-								break;
-							case DataFactory.PACKET_ATTACK:
-								attack(source);
-								break;
-							case DataFactory.PACKET_BUILD:
-								build(source);
-								break;
-							case DataFactory.PACKET_MOVE:
-								move(source);
 								break;
 							case DataFactory.PACKET_UPDATE_HP:
 								updateHP(source);
@@ -232,10 +228,12 @@ public class ServerGUI extends JFrame {
 							case DataFactory.PACKET_UPDATE_XY:
 								updateXY(source);
 								break;
-//							case DataFactory.PACKET_ADD_UNIT:
-//								break;
-//							case DataFactory.PACKET_REMOVE_UNIT:
-//								break;
+							case DataFactory.PACKET_ADD_UNIT:
+								addUnit(source);
+								break;
+							case DataFactory.PACKET_REMOVE_UNIT:
+								removeUnit(source);
+								break;
 							}
 						}
 					}
@@ -249,67 +247,82 @@ public class ServerGUI extends JFrame {
 	}
 	
 	private void connect(DatagramPacket packet) throws IOException {
-		// [ ] get map size
-		// [X] get player name
-		// [X] get ip
-		// [X] make player
-		// [X] add player to player array
-		
-		if (players.size() < map.getSpawnSites()) {
+		if (players.size() < 2) {
 			InetAddress ip = packet.getAddress();
 			
 			String name = DataInterpretor.getStringData(packet.getData(), 1, 64);
+			
+			cout("Connection request from " + packet.getAddress().toString() + " by " + name);
+			
 			Player p = new Player(ip, name);
 			players.put(ip, p);
 			
-			if (players.size() == map.getSpawnSites()) {
+			if (players.size() == 2) {
 				btnStart.setEnabled(true);
 			}
 		}
 	}
 	
 	private void disconnect(DatagramPacket packet) {
-		
+		// show window
+		// close game
+		// Bobby: maybe
 	}
 	
-	private void win(DatagramPacket packet) {
-		
-	}
-	
-	private void lose(DatagramPacket packet) {
-		
-	}
-	
-	private void move(DatagramPacket packet) throws IOException {
+	private void updateHP(DatagramPacket packet) throws IOException {
 		InetAddress source = packet.getAddress();
+		
+		Player p = players.get(source);
 		int unitID = DataInterpretor.getIntData(packet.getData(), 1);
-		int x = DataInterpretor.getIntData(packet.getData(), 5);
-		int y = DataInterpretor.getIntData(packet.getData(), 9);
+		int hp = DataInterpretor.getIntData(packet.getData(), 5);
 		
-		// TODO use Bobby's findPath method
+		p.getUnit(unitID).setHP(hp);
 	}
 	
-	private void attack(DatagramPacket packet) throws IOException {
+	private void updateXY(DatagramPacket packet) throws IOException {
 		InetAddress source = packet.getAddress();
-		int targetID = DataInterpretor.getIntData(packet.getData(), 1);
+		Player p = players.get(source);
+		int unitID = DataInterpretor.getIntData(packet.getData(), 1);
+		float x = DataInterpretor.getFloatData(packet.getData(), 5);
+		float y = DataInterpretor.getFloatData(packet.getData(), 9);
 		
-//		unitsInAction.add(packet);
+		p.getUnit(unitID).setX(x);
+		p.getUnit(unitID).setX(y);
 	}
 	
-	private void build(DatagramPacket packet) {
+	private void addUnit(DatagramPacket packet) throws IOException {
 		InetAddress source = packet.getAddress();
+		Player p = players.get(source);
+		int unitID = DataInterpretor.getIntData(packet.getData(), 1);
+		int hp = DataInterpretor.getIntData(packet.getData(), 5);
+		float x = DataInterpretor.getIntData(packet.getData(), 9);
+		float y = DataInterpretor.getIntData(packet.getData(), 13);
 		
-		if (players.containsKey(source)) {
-			
+		switch (unitID) {
+		case DataFactory.UNIT_COMMAND_CENTER:
+			// p.add(new CommandCenter(position, owner, false));
+			break;
+		case DataFactory.UNIT_BARRACKS:
+			// p.add(new Barracks(position, owner, false));
+			break;
+		case DataFactory.UNIT_GENERATOR:
+			// p.add(new Generator(position, owner, false));
+			break;
+		case DataFactory.UNIT_MARINE:
+			// p.add(new Marine(position, owner, false));
+			break;
+		case DataFactory.UNIT_WORKER:
+			// p.add(new Worker(position, owner, false));
+			break;
 		}
 	}
 	
-	private void updateHP(DatagramPacket packet) {
+	private void removeUnit(DatagramPacket packet) throws IOException {
+		InetAddress source = packet.getAddress();
+		Player p = players.get(source);
+		int unitID = DataInterpretor.getIntData(packet.getData(), 1);
 		
-	}
-	
-	private void updateXY(DatagramPacket packet) {
-		
+//		p.remove(unitiD);
 	}
 
 	private void addActionListeners() {
@@ -319,6 +332,33 @@ public class ServerGUI extends JFrame {
 				btnStart.setEnabled(false);
 				btnStop.setEnabled(true);
 				cboMaps.setEnabled(false);
+				
+				try {
+					for (Player p: players.values()) {
+						byte[] bytes = factory.createGameStartPacket();
+						DatagramPacket start = new DatagramPacket(bytes, bytes.length, p.getPlayerAddress(), 666);
+						server.send(start);
+					}
+				}
+				catch (IOException ex) {
+					ex.printStackTrace();
+				}
+				
+				sender.schedule(new TimerTask() {
+					@Override
+					public void run() {
+						try {
+							DatagramPacket p = outbound.remove();
+							
+							if (p != null) {
+								server.send(p);
+							}
+						}
+						catch (IOException e) {
+							cout("Big IO error caught. Figure out what was wrong");
+						}
+					}
+				}, 200);
 			}
 		});
 		
@@ -342,37 +382,17 @@ public class ServerGUI extends JFrame {
 		btnAccept.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				try {
-					cboMaps.setEnabled(false);
-					btnAccept.setEnabled(false);
-					btnDecline.setEnabled(true);
-					
-					// TODO need to get the real selected map
-					map = Map.createMap(mapFiles.get(0));
-					
-					waitingForConnections = true;
-					
-					players = new ConcurrentHashMap<InetAddress, Player>(map.getSpawnSites());
-					cout(String.valueOf(map.getSpawnSites()));
-					
-					receiver.start();
-					cout("Packet receiver thread started");
-					
-					sender.start();
-					cout("Packet sender thread started");
-					
-					interpretor.start();
-					cout("Packet interpretor thread started");
-					
-					
-				}
-				catch (UnknownHostException e1) {
-					e1.printStackTrace();
-				}
-				catch (IOException e1) {
-					cout("IOException caught...");
-					e1.printStackTrace();
-				}
+				cboMaps.setEnabled(false);
+				btnAccept.setEnabled(false);
+				btnDecline.setEnabled(true);
+				
+				waitingForConnections = true;
+				
+				new Thread(receiver).start();
+				cout("Packet receiver thread started");
+				
+				new Thread(interpretor).start();
+				cout("Packet interpretor thread started");
 			}
 		});
 		

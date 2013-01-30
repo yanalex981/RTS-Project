@@ -3,6 +3,11 @@ package rts.elements.units;
 import rts.elements.Unit;
 import rts.networking.Player;
 
+/**
+ * Soldier unit of the game. Fights enemy units
+ * 
+ * @author Alex Yan
+ */
 public class Marine extends Unit {
 	private static final int SPEED = 2;
 	private static final int HP = 50;

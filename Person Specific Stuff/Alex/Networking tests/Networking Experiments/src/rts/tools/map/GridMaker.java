@@ -21,6 +21,11 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 
 import rts.networking.Map;
 
+/**
+ * Map editor that can create/open grids, edit them, and save them as a file for loading as a map
+ * 
+ * @author Alex
+ */
 public class GridMaker extends JFrame {
 	private static final long serialVersionUID = 807206923751068976L;
 	
